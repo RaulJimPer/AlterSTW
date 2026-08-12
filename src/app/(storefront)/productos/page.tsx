@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   description: "Explora el catálogo de AlterSTW y filtra por estilo, talla y precio.",
 };
 
-function loadMoreHref(filters: CatalogFilters, nextPage: number): string {
+export function loadMoreHref(filters: CatalogFilters, nextPage: number): string {
   const params = new URLSearchParams();
   if (filters.cat) params.set("cat", filters.cat);
   if (filters.talla) params.set("talla", filters.talla);

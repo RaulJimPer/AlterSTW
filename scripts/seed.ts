@@ -1,17 +1,16 @@
 ﻿import { existsSync } from "node:fs";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
 // Demo catalog seed (feature 001). Runs with the service role (bypasses RLS),
 // is idempotent via upserts on natural keys, and mirrors the canonical
 // catalog written up in docs/seed-catalog.md. The app runtime never uses the
-// service role.
+// service role. The catalog data is exported so tests can validate its
+// integrity without touching Supabase.
 
 const ENV_FILE = ".env.local";
-if (existsSync(ENV_FILE)) {
-  process.loadEnvFile(ENV_FILE);
-}
 
 function requiredEnv(name: string): string {
   const value = process.env[name];
@@ -21,7 +20,7 @@ function requiredEnv(name: string): string {
   return value;
 }
 
-const sizeSchema = z.enum(["XS", "S", "M", "L", "XL", "XXL", "Ãšnica"]);
+const sizeSchema = z.enum(["XS", "S", "M", "L", "XL", "XXL", "Única"]);
 const categorySlugs = [
   "camisetas",
   "sudaderas",
@@ -49,7 +48,7 @@ const productSchema = z.object({
 
 type SeedProduct = z.infer<typeof productSchema>;
 
-const categories = [
+export const seedCategories = [
   { slug: "camisetas", name: "Camisetas", sort_order: 1 },
   { slug: "sudaderas", name: "Sudaderas", sort_order: 2 },
   { slug: "pantalones", name: "Pantalones", sort_order: 3 },
@@ -57,14 +56,14 @@ const categories = [
   { slug: "accesorios", name: "Accesorios", sort_order: 5 },
 ];
 
-const storeCatalog: SeedProduct[] = [
+export const storeCatalog: SeedProduct[] = [
   {
     slug: "skull-crush-tee",
     name: "Skull Crush Tee",
     category: "camisetas",
     priceCents: 2500,
     description:
-      "Camiseta negra de algodÃ³n orgÃ¡nico 240 g con print frontal de calavera en el pecho. Corte regular, cuello reforzado. El grito de la tribu, estampado en serigrafÃ­a a una sola pasada.",
+      "Camiseta negra de algodón orgánico 240 g con print frontal de calavera en el pecho. Corte regular, cuello reforzado. El grito de la tribu, estampado en serigrafía a una sola pasada.",
     image: "/images/seed/skull-crush.jpg",
     publishedDaysAgo: 6,
     sizes: [
@@ -80,7 +79,7 @@ const storeCatalog: SeedProduct[] = [
     category: "camisetas",
     priceCents: 2290,
     description:
-      "Camiseta de rayas rojo/hueso de costura plana. Estampada como la prensa de ayer y cortada para los que despiertan el barrio. Ãšltimas unidades en talla pequeÃ±a o mediana.",
+      "Camiseta de rayas rojo/hueso de costura plana. Estampada como la prensa de ayer y cortada para los que despiertan el barrio. Últimas unidades en talla pequeña o mediana.",
     image: "/images/seed/pinstripe-riot.jpg",
     publishedDaysAgo: 45,
     sizes: [
@@ -95,7 +94,7 @@ const storeCatalog: SeedProduct[] = [
     category: "camisetas",
     priceCents: 2150,
     description:
-      "Camiseta lavada a la piedra con destiÃ±e controlado y dobladillo deshilachado. El que la ve del revÃ©s sabe de quÃ© barrio viene. ReposiciÃ³n en camino.",
+      "Camiseta lavada a la piedra con destiñe controlado y dobladillo deshilachado. El que la ve del revés sabe de qué barrio viene. Reposición en camino.",
     image: "/images/seed/faded-89.jpg",
     publishedDaysAgo: 30,
     sizes: [
@@ -111,7 +110,7 @@ const storeCatalog: SeedProduct[] = [
     category: "sudaderas",
     priceCents: 5499,
     description:
-      "Sudadera con capucha forrada en felpa de algodÃ³n perlado, 380 g. Bolsillo canguro, cordones planos y etiqueta tejida en el bajo. Para tu gente, despuÃ©s del bolo.",
+      "Sudadera con capucha forrada en felpa de algodón perlado, 380 g. Bolsillo canguro, cordones planos y etiqueta tejida en el bajo. Para tu gente, después del bolo.",
     image: "/images/seed/after-dark-hoodie.jpg",
     publishedDaysAgo: 4,
     sizes: [
@@ -129,7 +128,7 @@ const storeCatalog: SeedProduct[] = [
       "Gorra de seis paneles en sarga con parche frontal bordado y cierre trasero de hebilla. El pichoncillo del barrio no sale sin ella.",
     image: "/images/seed/graff-cap.jpg",
     publishedDaysAgo: 20,
-    sizes: [{ size: "Ãšnica", stock: 8 }],
+    sizes: [{ size: "Única", stock: 8 }],
   },
   {
     slug: "cargo-unit-pants",
@@ -137,7 +136,7 @@ const storeCatalog: SeedProduct[] = [
     category: "pantalones",
     priceCents: 4750,
     description:
-      "PantalÃ³n de corte militar con bolsillos de fuelle y doble costura de refuerzo. Ripstop ligero y cintura ajustable con cordÃ³n interior. Para moverte por la ciudad sin soltar nada.",
+      "Pantalón de corte militar con bolsillos de fuelle y doble costura de refuerzo. Ripstop ligero y cintura ajustable con cordón interior. Para moverte por la ciudad sin soltar nada.",
     image: "/images/seed/cargo-unit.jpg",
     publishedDaysAgo: 60,
     sizes: [
@@ -152,7 +151,7 @@ const storeCatalog: SeedProduct[] = [
     category: "chaquetas",
     priceCents: 6995,
     description:
-      "Chaqueta bomber de nylon satinado con forro naranja y bolsillo frontal de seguridad. PuÃ±os de punto ribeteado y cremallera roja para que la vean venir de noche.",
+      "Chaqueta bomber de nylon satinado con forro naranja y bolsillo frontal de seguridad. Puños de punto ribeteado y cremallera roja para que la vean venir de noche.",
     image: "/images/seed/bomber-night.jpg",
     publishedDaysAgo: 2,
     sizes: [
@@ -167,7 +166,7 @@ const storeCatalog: SeedProduct[] = [
     category: "camisetas",
     priceCents: 3200,
     description:
-      "Camisa de franela a cuadros rojo/hueso, 260 g de algodÃ³n cepillado. Botones de carey y bolsillo al pecho. El clÃ¡sico que no envejece, como la hora del recreo.",
+      "Camisa de franela a cuadros rojo/hueso, 260 g de algodón cepillado. Botones de carey y bolsillo al pecho. El clásico que no envejece, como la hora del recreo.",
     image: "/images/seed/flannel-97.jpg",
     publishedDaysAgo: 50,
     sizes: [
@@ -183,7 +182,7 @@ const storeCatalog: SeedProduct[] = [
     category: "chaquetas",
     priceCents: 5900,
     description:
-      "Chaqueta sin mangas en mezclilla lavada con remaches metÃ¡licos clavados a mano. MÃ¡s dura que el lunes sin cafÃ©. Cada remache, clavado, no pegado.",
+      "Chaqueta sin mangas en mezclilla lavada con remaches metálicos clavados a mano. Más dura que el lunes sin café. Cada remache, clavado, no pegado.",
     image: "/images/seed/stud-destroyer.jpg",
     publishedDaysAgo: 16,
     sizes: [
@@ -197,7 +196,7 @@ const storeCatalog: SeedProduct[] = [
     category: "chaquetas",
     priceCents: 8990,
     description:
-      "Chaqueta de piel curtida, cierre central y cuello estilo motero. Se porta, no se viste. Ãšltimas piezas del lote.",
+      "Chaqueta de piel curtida, cierre central y cuello estilo motero. Se porta, no se viste. Últimas piezas del lote.",
     image: "/images/seed/leather-rebel.jpg",
     publishedDaysAgo: 120,
     sizes: [
@@ -211,7 +210,7 @@ const storeCatalog: SeedProduct[] = [
     category: "pantalones",
     priceCents: 4300,
     description:
-      "PantalÃ³n de pana con canalÃ© ancho en tonos morados. Corte recto de tiro medio y bolsillos al bies. El lujo tranquilo de quien llega solo a la cita.",
+      "Pantalón de pana con canalé ancho en tonos morados. Corte recto de tiro medio y bolsillos al bies. El lujo tranquilo de quien llega solo a la cita.",
     image: "/images/seed/velvet-rider.jpg",
     publishedDaysAgo: 70,
     sizes: [
@@ -228,40 +227,44 @@ const storeCatalog: SeedProduct[] = [
       "Chaqueta vaquera de retales de denim cosidos a la vista, con forro interior. Ninguna igual, todas de la misma calle. Pieza de archivo.",
     image: "/images/seed/denim-ghost.jpg",
     publishedDaysAgo: 8,
-    sizes: [{ size: "Ãšnica", stock: 7 }],
+    sizes: [{ size: "Única", stock: 7 }],
   },
 ];
 
-const catalog = productSchema.array().parse(storeCatalog);
+export const seedCatalog = productSchema.array().parse(storeCatalog);
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-function publishedAt(daysAgo: number): string {
-  return new Date(Date.now() - daysAgo * DAY_MS).toISOString();
+export function stockTotalOf(product: SeedProduct): number {
+  return product.sizes.reduce((sum, entry) => sum + entry.stock, 0);
 }
 
-function assertAssetOnDisk(image: string): void {
-  const file = path.join("public", image);
-  if (!existsSync(file)) {
-    throw new Error(`Seed asset missing on disk: ${image}`);
+export function assertAllSeedAssets(): void {
+  for (const product of seedCatalog) {
+    const file = path.join("public", product.image);
+    if (!existsSync(file)) {
+      throw new Error(`Seed asset missing on disk: ${product.image}`);
+    }
   }
 }
 
 async function main(): Promise<void> {
+  if (existsSync(ENV_FILE)) {
+    process.loadEnvFile(ENV_FILE);
+  }
+
   const url = requiredEnv("NEXT_PUBLIC_SUPABASE_URL");
   const serviceKey = requiredEnv("SUPABASE_SERVICE_ROLE_KEY");
   const db = createClient(url, serviceKey, { auth: { persistSession: false } });
 
-  if (categories.length !== categorySlugs.length) {
+  if (seedCategories.length !== categorySlugs.length) {
     throw new Error("Category definitions do not match the declared slugs");
   }
-  for (const product of catalog) {
-    assertAssetOnDisk(product.image);
-  }
+  assertAllSeedAssets();
 
   const { error: catUpsertError } = await db
     .from("categories")
-    .upsert(categories, { onConflict: "slug", ignoreDuplicates: true });
+    .upsert(seedCategories, { onConflict: "slug", ignoreDuplicates: true });
   if (catUpsertError) {
     throw new Error(`categories upsert failed: ${catUpsertError.message}`);
   }
@@ -285,7 +288,7 @@ async function main(): Promise<void> {
   let updated = 0;
   let sizesWritten = 0;
 
-  for (const product of catalog) {
+  for (const product of seedCatalog) {
     const categoryId = idBySlug.get(product.category);
     if (categoryId === undefined) {
       throw new Error(`Unknown category for ${product.slug}`);
@@ -309,7 +312,7 @@ async function main(): Promise<void> {
         category_id: categoryId,
         images: [product.image],
         status: "published",
-        published_at: publishedAt(product.publishedDaysAgo),
+        published_at: new Date(Date.now() - product.publishedDaysAgo * DAY_MS).toISOString(),
       },
       { onConflict: "slug" },
     );
@@ -357,14 +360,17 @@ async function main(): Promise<void> {
   if (countError) throw new Error(`products count failed: ${countError.message}`);
 
   console.log("AlterSTW seed complete");
-  console.log(`  categories : ${categories.length}`);
+  console.log(`  categories : ${seedCategories.length}`);
   console.log(`  products   : ${countRows.length} rows (${created} created, ${updated} updated)`);
   console.log(`  sizes      : ${sizesWritten} rows`);
   console.log(`  status     : all 'published'`);
 }
 
-main().catch((error: unknown) => {
-  const message = error instanceof Error ? error.message : String(error);
-  console.error(`AlterSTW seed failed: ${message}`);
-  process.exitCode = 1;
-});
+const entryPoint = process.argv[1];
+if (entryPoint && pathToFileURL(entryPoint).href === import.meta.url) {
+  main().catch((error: unknown) => {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(`AlterSTW seed failed: ${message}`);
+    process.exitCode = 1;
+  });
+}
