@@ -1,26 +1,77 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --color-paper: #f4efe6;
+  --color-ink: #141414;
+  --color-void: #131315;
+  --color-surface-void: #1c1c1e;
+  --color-red: #c1121f;
+  --color-vermillion: #e63946;
+  --color-yellow: #ffd60a;
+  --color-purple: #6d28d9;
+  --color-purple-bright: #9b5de5;
+  --color-rule: #d2cdc6;
+  --color-rule-dark: #2c2d2e;
+  --radius-print: 2px;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-bricolage);
+  --font-body: var(--font-space-grotesk);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-red);
+    outline-offset: 2px;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Zaguán tilework, low-relief (≈8%) garnish for void blocks and empty states.
+   Apply on a block that already carries a solid background. */
+.tilework {
+  background-image: conic-gradient(
+    from 90deg,
+    transparent 0deg 25%,
+    color-mix(in srgb, var(--color-paper) 8%, transparent) 0deg 50%,
+    transparent 0deg 75%,
+    color-mix(in srgb, var(--color-paper) 8%, transparent) 0deg 100%
+  );
+  background-size: 28px 28px;
+}
+
+/* Grain: a very light ink noise overlay for hero/void blocks only.
+   The host element must be position: relative. Removed under reduced motion. */
+.grain::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.18'/%3E%3C/svg%3E");
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grain::before {
+    opacity: 0;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
