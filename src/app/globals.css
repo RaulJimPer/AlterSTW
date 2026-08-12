@@ -50,6 +50,45 @@
   background-size: 28px 28px;
 }
 
+/* Same tilework motif, inverted for paper backgrounds (empty filters state). */
+.tilework-on-paper {
+  background-image: conic-gradient(
+    from 90deg,
+    transparent 0deg 25%,
+    color-mix(in srgb, var(--color-ink) 7%, transparent) 0deg 50%,
+    transparent 0deg 75%,
+    color-mix(in srgb, var(--color-ink) 7%, transparent) 0deg 100%
+  );
+  background-size: 28px 28px;
+}
+
+@layer components {
+  .eyebrow {
+    @apply text-xs font-bold uppercase tracking-widest;
+  }
+
+  .btn-primary {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-print bg-red px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-paper transition-colors;
+  }
+
+  .btn-primary:hover {
+    background-color: #9a0e16;
+  }
+
+  .btn-secondary {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-print border border-ink bg-paper px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-ink transition-colors;
+  }
+
+  .btn-secondary:hover {
+    background-color: var(--color-ink);
+    color: var(--color-paper);
+  }
+
+  .field {
+    @apply w-full border border-rule bg-paper px-2 py-2 text-sm text-ink focus:border-red focus:outline-none;
+  }
+}
+
 /* Grain: a very light ink noise overlay for hero/void blocks only.
    The host element must be position: relative. Removed under reduced motion. */
 .grain::before {

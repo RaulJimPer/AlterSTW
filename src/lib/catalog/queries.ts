@@ -9,6 +9,7 @@ import type {
 import { PAGE_SIZE, type CatalogFilters } from "@/lib/validation/catalog";
 
 const FALLBACK_IMAGE = "/images/seed/fallback.svg";
+const CANONICAL_SIZE_ORDER = ["XS", "S", "M", "L", "XL", "XXL", "Única"];
 
 type CatalogProductRow = {
   id: number | string;
@@ -59,6 +60,29 @@ export async function getCategories(): Promise<Category[]> {
     name: row.name,
     sortOrder: row.sort_order,
   }));
+}
+
+export async function getAvailableSizes(): Promise<string[]> {
+  const db = await createClient();
+  const { data, error } = await db
+    .from("catalog_products_v")
+    .select("available_sizes");
+
+  if (error) {
+    throw new Error(`Failed to load sizes: ${error.message}`);
+  }
+
+  const sizes = new Set<string>();
+  for (const row of (data ?? []) as { available_sizes: string[] | null }[]) {
+    for (const size of row.available_sizes ?? []) sizes.add(size);
+  }
+
+  const rank = new Map(
+    CANONICAL_SIZE_ORDER.map((size, index) => [size, index]),
+  );
+  return Array.from(sizes).sort(
+    (a, b) => (rank.get(a) ?? 99) - (rank.get(b) ?? 99),
+  );
 }
 
 export async function getPublishedProducts(
