@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+  <rect width="800" height="600" fill="#f4efe6"/>
+  <rect x="8" y="8" width="784" height="584" fill="none" stroke="#d2cdc6" stroke-width="2" stroke-dasharray="10 8"/>
+  <path d="M245 148 C252 172 262 182 238 204 L146 248 C138 253 140 265 150 269 L250 232 L250 468 C250 480 262 486 272 486 L528 486 C538 486 550 480 550 468 L550 232 L650 269 C660 265 662 253 654 248 L562 204 C538 182 548 172 555 148 C512 136 470 130 400 130 C330 130 288 136 245 148 Z" fill="#f4efe6" stroke="#141414" stroke-width="3"/>
+  <ellipse cx="400" cy="148" rx="78" ry="24" fill="#f4efe6" stroke="#141414" stroke-width="3"/>
+  <path d="M330 196 L470 196 L470 208 L400 240 L330 208 Z" fill="#141414"/>
+  <rect x="240" y="264" width="320" height="64" fill="#c1121f"/>
+  <text x="400" y="306" text-anchor="middle" font-family="'Bricolage Grotesque', 'Arial Black', Arial, Helvetica, sans-serif" font-size="34" font-weight="700" letter-spacing="3" fill="#f4efe6">NO DISPONIBLE</text>
+  <text x="400" y="376" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="15" letter-spacing="7" fill="#141414">ALTERSTW</text>
+  <g transform="translate(668 66) rotate(6)">
+    <rect x="-54" y="-16" width="108" height="32" rx="2" fill="#f4efe6" stroke="#141414" stroke-width="2"/>
+    <circle cx="-44" cy="0" r="5" fill="none" stroke="#141414" stroke-width="2"/>
+    <path d="M-20 -4 L26 -4 M-20 4 L20 4" stroke="#141414" stroke-width="2" stroke-linecap="square"/>
+  </g>
+  <path d="M132 64 L156 64" stroke="#141414" stroke-width="3"/>
+  <circle cx="122" cy="64" r="6" fill="none" stroke="#141414" stroke-width="2"/>
+</svg>

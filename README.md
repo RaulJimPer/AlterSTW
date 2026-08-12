@@ -30,7 +30,10 @@ npm install
 # 2. Configure (optional)
 #    copy .env.example to .env.local and fill in the Supabase / Stripe keys
 
-# 3. Run
+# 3. Seed demo catalog (requires Supabase configured + migrations applied)
+npm run seed
+
+# 4. Run
 npm run dev
 ```
 
