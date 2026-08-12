@@ -23,7 +23,9 @@ export const metadata: Metadata = {
     "ALTERSTW: ropa y moda alternativa — punk, streetwear y vintage con carácter.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html
       lang="es"
