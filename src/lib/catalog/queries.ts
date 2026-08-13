@@ -8,7 +8,7 @@ import type {
 } from "@/lib/catalog/types";
 import { PAGE_SIZE, type CatalogFilters } from "@/lib/validation/catalog";
 
-const FALLBACK_IMAGE = "/images/seed/fallback.svg";
+export const FALLBACK_IMAGE = "/images/seed/fallback.svg";
 const CANONICAL_SIZE_ORDER = ["XS", "S", "M", "L", "XL", "XXL", "Única"];
 
 type CatalogProductRow = {
