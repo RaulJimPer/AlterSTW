@@ -2,7 +2,7 @@
 
 Testing strategy, how to run the suite, and what exactly is covered.
 
-**Status:** Storefront verified. Suite: **157 Vitest tests across 27 files** +
+**Status:** Storefront verified. Suite: **162 Vitest tests across 28 files** +
 static gates (ESLint + `tsc --noEmit`) + production build — all green.
 
 ---
@@ -49,10 +49,10 @@ npm run typecheck
 npm run build
 ```
 
-## 3. The Vitest suite (157 tests)
+## 3. The Vitest suite (162 tests)
 
-Findings from `npm test` should always end in `Test Files 27 passed (27)`
-and `Tests 157 passed (157)`.
+Findings from `npm test` should always end in `Test Files 28 passed (28)`
+and `Tests 162 passed (162)`.
 
 ### Logic layer
 
@@ -90,6 +90,7 @@ and `Tests 157 passed (157)`.
 | `productos-page` (via `src/components/storefront/__tests__`) | 5 | Fully mocked subcomponents: empty state, grid + count + `Ver más`, query filters. |
 | `size-chips.test.tsx` | 3 | Per-size availability (title attributes), selection toggle via `aria-pressed`, and a message when there are no sizes. |
 | `sort-select.test.tsx` | 2 | Selects the current sort from the URL and rewrites the URL preserving the other filters. |
+| `filter-form.test.tsx` | 5 | Collapsible filter groups as a disclosure accordion: all groups closed by default with hidden panels, independent toggling (opening one keeps others open), Limpiar pointing to `/productos` and collapsing every group, defaults re-derived from a clean URL after navigation, and an active-filter group rendering closed with its removable chip. |
 | `add-to-cart-form.test.tsx` | 4 | Enforces explicit size selection (prompts before adding), adds the selected size and opens the sheet, surfaces server-action errors, and the sold-out branch without a size selector. |
 | `cart/cart-sheet.test.tsx` | 7 | Empty state; lines + live subtotal + disabled checkout CTA (003 placeholder); full-cart `/carrito` link; ESC/Cerrar dismissal; focus to the panel, scroll-lock on open and restore on close. |
 | `cart/cart-lines.test.tsx` | 6 | Steppers bounded by stock and quantity one, removal with `router.refresh()`, unavailable lines (disabled steppers, badged), and the invalid-cart CTA message. |

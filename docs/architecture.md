@@ -108,7 +108,9 @@ specs), `.opencode/`, `.agents/`, `opencode.json`, `skills-lock.json`,
   `header.tsx` (mobile nav + cart sheet trigger), `sort-select.tsx`,
   `size-chips.tsx`, `add-to-cart-form.tsx`, the `cart/` trio
   (`cart-context`, `cart-sheet`, `cart-lines`),
-  `filter-form.tsx`/`mobile-filter-sheet.tsx`, and the two `error.tsx`
+  `filter-form.tsx`/`mobile-filter-sheet.tsx` (FilterForm renders the filter
+  groups as a multi-open disclosure accordion whose open/close state lives in
+  the component, outside the remountable `<form>`), and the two `error.tsx`
   boundaries. Each is marked `"use client"`.
 - **Catalog page** (`(storefront)/productos/page.tsx`): reads `searchParams`,
   parses them through Zod (`lib/validation/catalog.ts` → `parseCatalogFilters`),

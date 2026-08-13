@@ -46,7 +46,7 @@ Then open <http://localhost:3000>.
 | [Features](docs/features.md) | Storefront, cart, checkout, admin panel, analytics dashboard and future extensions |
 | [Tech Stack](docs/tech-stack.md) | Every technology, version, and the rationale behind it |
 | [Architecture](docs/architecture.md) | Repository layout as it exists in git, RSC-first frontend and data-layer glue |
-| [Testing](docs/testing.md) | Testing strategy, how to run the suite and the coverage of all 72 tests |
+| [Testing](docs/testing.md) | Testing strategy, how to run the suite and the coverage of all 162 tests |
 | [Deployment](docs/deployment.md) | Install, configure, migrate, seed, run and production notes |
 | [Demo seed catalog](docs/seed-catalog.md) | Source of truth for the 12 demo products written by `npm run seed` |
 | [UI/UX design](docs/ui-ux-design.md) | Visual identity, accessibility and responsive rules |

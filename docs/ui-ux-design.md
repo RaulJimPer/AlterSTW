@@ -211,6 +211,13 @@ links; the whole frame is clickable with a visible focus outline.
 - **Desktop:** sticky left sidebar — Categoría, Talla, Precio (range), Estado
   (Disponible / Ocasión). Active filter = red stamped label + removable chip.
   Buttons: *Aplicar* (primary red) and *Limpiar* (text).
+- **Filter groups are collapsible accordions** (APG disclosure pattern): each
+  group header is a button with a rotating chevron (`aria-expanded` +
+  `aria-controls`), all groups start **collapsed**, opening one never closes
+  the others, and *Limpiar* collapses every group while navigating back to the
+  clean catalog. Active-filter chips stay visible above the collapsed groups.
+  The sidebar keeps its sticky top position but the page itself scrolls (no
+  inner sidebar scrollbar).
 - **Mobile:** filters open in a bottom **sheet** (full-height, scrolled), with
   a sticky *Aplicar* primary button at the bottom.
 - **Sort:** small dropdown (“Más reciente · Precio ↑ · Precio ↓”).
