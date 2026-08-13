@@ -1,5 +1,8 @@
+import { CartProvider } from "@/components/storefront/cart/cart-context";
 import { Footer } from "@/components/storefront/footer";
 import { Header } from "@/components/storefront/header";
+import { readCart } from "@/lib/cart/cart";
+import { resolveCart } from "@/lib/cart/queries";
 import { getCategories } from "@/lib/catalog/queries";
 
 export default async function StorefrontLayout({
@@ -7,13 +10,18 @@ export default async function StorefrontLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const categories = await getCategories();
+  const [categories, cart] = await Promise.all([
+    getCategories(),
+    resolveCart(await readCart()),
+  ]);
 
   return (
     <div className="flex min-h-full flex-1 flex-col">
-      <Header categories={categories} />
-      <main className="flex-1">{children}</main>
-      <Footer categories={categories} />
+      <CartProvider cart={cart}>
+        <Header categories={categories} cart={cart} />
+        <main className="flex-1">{children}</main>
+        <Footer categories={categories} />
+      </CartProvider>
     </div>
   );
 }

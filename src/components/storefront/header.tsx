@@ -4,11 +4,22 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import type { Category } from "@/lib/catalog/types";
+import type { CartState } from "@/lib/cart/types";
+import { useCart } from "@/components/storefront/cart/cart-context";
 
-export function Header({ categories }: { categories: Category[] }) {
+export function Header({
+  categories,
+  cart,
+}: {
+  categories: Category[];
+  cart: CartState;
+}) {
   const pathname = usePathname() ?? "/";
   const [open, setOpen] = useState(false);
+  const { openCart } = useCart();
   const catalogActive = pathname.startsWith("/productos");
+  const countLabel =
+    cart.count === 1 ? "1 producto" : `${cart.count} productos`;
 
   return (
     <header className="sticky top-0 z-40 border-b-2 border-ink bg-paper">
@@ -62,9 +73,10 @@ export function Header({ categories }: { categories: Category[] }) {
             />
           </form>
 
-          <Link
-            href="/carrito"
-            aria-label="Carrito (0 productos)"
+          <button
+            type="button"
+            onClick={openCart}
+            aria-label={`Carrito (${countLabel})`}
             className="relative inline-flex min-h-11 items-center gap-1.5 px-1 text-xs font-bold uppercase tracking-widest hover:text-red"
           >
             Carrito
@@ -72,9 +84,9 @@ export function Header({ categories }: { categories: Category[] }) {
               aria-hidden
               className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-red px-1 text-[0.625rem] font-bold tabular-nums text-paper"
             >
-              0
+              {cart.count}
             </span>
-          </Link>
+          </button>
         </div>
       </div>
 

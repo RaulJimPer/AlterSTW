@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { AddToCartButton } from "@/components/storefront/add-to-cart-button";
+import { AddToCartForm } from "@/components/storefront/add-to-cart-form";
 import { FlashSticker } from "@/components/storefront/flash-sticker";
 import { HangingPriceTag } from "@/components/storefront/hanging-price-tag";
-import { SizeChips } from "@/components/storefront/size-chips";
 import { StampBadge } from "@/components/storefront/stamp-badge";
 import { getProductBySlug } from "@/lib/catalog/queries";
 
@@ -81,12 +80,11 @@ export default async function ProductPage({
 
           <HangingPriceTag cents={product.priceCents} size="lg" />
 
-          <div className="flex flex-col gap-2">
-            <p className="eyebrow text-ink">Tallas</p>
-            <SizeChips sizes={product.sizes} />
-          </div>
-
-          <AddToCartButton outOfStock={outOfStock} />
+          <AddToCartForm
+            slug={product.slug}
+            sizes={product.sizes}
+            outOfStock={outOfStock}
+          />
 
           <p className="text-sm text-ink/70">
             Envíos en 24–48 h · Devuelve sin complicaciones en 30 días.

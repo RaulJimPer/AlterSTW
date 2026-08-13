@@ -10,6 +10,7 @@ const { notFoundMock, getProductBySlugMock } = vi.hoisted(() => ({
 
 vi.mock("next/navigation", () => ({
   notFound: notFoundMock,
+  usePathname: () => "/",
 }));
 
 vi.mock("next/image", () => ({
@@ -23,6 +24,8 @@ vi.mock("@/lib/catalog/queries", () => ({
   getProductBySlug: getProductBySlugMock,
 }));
 
+import { CartProvider } from "@/components/storefront/cart/cart-context";
+import { EMPTY_CART } from "@/lib/cart/types";
 import ProductPage, {
   generateMetadata,
 } from "@/app/(storefront)/productos/[slug]/page";
@@ -47,6 +50,15 @@ const detail: ProductDetail = {
   ],
 };
 
+const detailInStock: ProductDetail = {
+  ...detail,
+  stockTotal: 3,
+  badge: null,
+};
+
+const renderWithCart = (element: React.ReactNode) =>
+  render(<CartProvider cart={EMPTY_CART}>{element}</CartProvider>);
+
 describe("ProductPage", () => {
   it("calls notFound for an unknown slug", async () => {
     vi.mocked(getProductBySlugMock).mockResolvedValue(null);
@@ -63,7 +75,7 @@ describe("ProductPage", () => {
     const element = await ProductPage({
       params: Promise.resolve({ slug: "skull-crush-tee" }),
     });
-    render(element);
+    renderWithCart(element);
 
     expect(screen.getByRole("heading", { level: 1, name: "Skull Crush Tee" })).toBeInTheDocument();
     expect(screen.getByText("AGOTADO")).toBeInTheDocument();
@@ -74,15 +86,18 @@ describe("ProductPage", () => {
   });
 
   it("disables unavailable sizes but keeps the rest clickable", async () => {
-    vi.mocked(getProductBySlugMock).mockResolvedValue(detail);
+    vi.mocked(getProductBySlugMock).mockResolvedValue(detailInStock);
 
     const element = await ProductPage({
       params: Promise.resolve({ slug: "skull-crush-tee" }),
     });
-    render(element);
+    renderWithCart(element);
 
     expect(screen.getByRole("button", { name: /\(agotado\)/ })).toBeDisabled();
     expect(screen.getByRole("button", { name: /^M$/ })).toBeEnabled();
+    expect(
+      screen.getByRole("button", { name: /añadir al carrito/i }),
+    ).toBeEnabled();
   });
 });
 
