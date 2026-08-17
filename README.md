@@ -13,31 +13,46 @@ admin panel with an analytics dashboard for the owner.
 - **Conversion-first storefront** — product catalog with dynamic filtering
   and categorization, designed to turn visitors into customers.
 - **Secure shopping** — cart management and Stripe checkout (Checkout
-  Sessions + webhooks).
-- **Admin panel** — product publishing and inventory management for the
-  owner.
-- **Analytics dashboard** — sales, visits and conversion-rate metrics with
-  Recharts.
+  Sessions + signed, idempotent webhooks) with server-validated cart and
+  atomic per-size stock decrement.
+- **Order confirmation email** — transactional email via Resend,
+  best-effort and tracked in the order record.
+- **Admin panel** *(planned)* — product publishing and inventory management
+  for the owner.
+- **Analytics dashboard** *(planned)* — sales, visits and conversion-rate
+  metrics with Recharts.
 - **Security by default** — Supabase Row Level Security, strict TypeScript,
   Zod input validation, and npm 12 supply-chain hardening.
 
 ## Quickstart
 
+Prerequisites: Node 24 LTS (nvm) + npm 12, a Supabase project, and Stripe /
+Resend accounts. See [docs/deployment.md](docs/deployment.md) for the full
+setup.
+
 ```powershell
 # 1. Install dependencies
 npm install
 
-# 2. Configure (optional)
-#    copy .env.example to .env.local and fill in the Supabase / Stripe keys
+# 2. Configure
+copy .env.example .env.local   # fill in Supabase / Stripe / Resend keys
 
-# 3. Seed demo catalog (requires Supabase configured + migrations applied)
+# 3. Apply database migrations (in order, via the Supabase SQL editor)
+#    supabase/migrations/001_catalog.sql
+#    supabase/migrations/002_catalog_search.sql
+#    supabase/migrations/003_orders.sql
+
+# 4. Seed demo catalog (idempotent)
 npm run seed
 
-# 4. Run
+# 5. Dev server + Stripe webhooks (two terminals)
 npm run dev
+stripe listen --forward-to http://localhost:3000/api/webhooks/stripe
+#    copy the printed whsec_… into STRIPE_WEBHOOK_SECRET in .env.local and restart npm run dev
 ```
 
-Then open <http://localhost:3000>.
+Then open <http://localhost:3000>. Pay with Stripe test card `4242 4242 4242
+4242`.
 
 ## Documentation
 
@@ -46,7 +61,7 @@ Then open <http://localhost:3000>.
 | [Features](docs/features.md) | Storefront, cart, checkout, admin panel, analytics dashboard and future extensions |
 | [Tech Stack](docs/tech-stack.md) | Every technology, version, and the rationale behind it |
 | [Architecture](docs/architecture.md) | Repository layout as it exists in git, RSC-first frontend and data-layer glue |
-| [Testing](docs/testing.md) | Testing strategy, how to run the suite and the coverage of all 162 tests |
+| [Testing](docs/testing.md) | Testing strategy, how to run the suite and the coverage of all 196 tests across 36 files |
 | [Deployment](docs/deployment.md) | Install, configure, migrate, seed, run and production notes |
 | [Demo seed catalog](docs/seed-catalog.md) | Source of truth for the 12 demo products written by `npm run seed` |
 | [UI/UX design](docs/ui-ux-design.md) | Visual identity, accessibility and responsive rules |
@@ -88,5 +103,8 @@ npm run build
 
 ## Status
 
-> **In development.** AlterSTW is a work-in-progress. The product is built
-> feature by feature following Spec-Driven Development Features and behavior may change at any time.
+> **In development.** The storefront is fully functional end-to-end: catalog,
+> cart and checkout with Stripe payments and confirmation emails (features
+> 001–003 complete, all gates green and QA-verified). The admin panel and
+> analytics dashboard are next on the roadmap (`spec/constitution/roadmap.md`);
+> features and behavior may still change.

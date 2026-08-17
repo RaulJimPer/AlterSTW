@@ -26,6 +26,12 @@ behind each decision.
 | Stripe (server SDK) | ^22.4.0 | Checkout Sessions + webhooks; source of truth for payments. |
 | `@stripe/stripe-js` | ^9.13.0 | Browser integration for the checkout flow. |
 
+## Email
+
+| Technology | Version | Rationale |
+|---|---|---|
+| Resend | ^6.20.0 | Transactional email (order confirmation) sent from the payment webhook via the server SDK; best-effort with `orders.email_status` tracking. Chosen for ergonomics of the SDK + dev inbox (`resend.dev`). |
+
 ## Validation
 
 | Technology | Version | Rationale |
@@ -63,6 +69,7 @@ behind each decision.
 "@supabase/supabase-js": "^2.112.2",
 "stripe": "^22.4.0",
 "@stripe/stripe-js": "^9.13.0",
+"resend": "^6.20.0",
 "recharts": "^3.10.1",
 "zod": "^4.4.3",
 "vitest": "^4.1.10"

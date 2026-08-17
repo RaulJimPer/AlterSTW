@@ -2,7 +2,7 @@
 
 Testing strategy, how to run the suite, and what exactly is covered.
 
-**Status:** Storefront verified. Suite: **162 Vitest tests across 28 files** +
+**Status:** Storefront + checkout verified. Suite: **196 Vitest tests across 36 files** +
 static gates (ESLint + `tsc --noEmit`) + production build — all green.
 
 ---
@@ -49,10 +49,10 @@ npm run typecheck
 npm run build
 ```
 
-## 3. The Vitest suite (162 tests)
+## 3. The Vitest suite (196 tests)
 
-Findings from `npm test` should always end in `Test Files 28 passed (28)`
-and `Tests 162 passed (162)`.
+Findings from `npm test` should always end in `Test Files 36 passed (36)`
+and `Tests 196 passed (196)`.
 
 ### Logic layer
 
@@ -69,6 +69,11 @@ and `Tests 162 passed (162)`.
 | `src/lib/cart/__tests__/cart.test.ts` | 7 | Session cookie read/write/clear against an in-memory `next/headers` store; missing/corrupt/invalid JSON → empty; writes carry session-scoped options and the ~3 KB byte guard throws `limit-bytes`. |
 | `src/lib/cart/__tests__/queries.test.ts` | 7 | `resolveCart`: per-size stock, qty clamping, orphan products outside the catalog, slug deduplication and DB-failure degradation to `EMPTY_CART`. |
 | `src/lib/cart/__tests__/actions.test.ts` | 14 | `addToCart`/`setQuantity`/`removeLine`: Zod validation, DB stock gate, consolidation/removal, bounds, persistence and `revalidatePath`; error paths return a discriminated `CartActionResult`. |
+| `src/lib/checkout/__tests__/actions.test.ts` | 5 | `createCheckoutSession`: line items with `price_data` (currency/unit_amount/product metadata), site URLs from env, empty-cart error, hard stock gate, Stripe failure → `{ok:false}` and never throws; `clearCartAfterOrder` revalidates the layout. |
+| `src/lib/orders/__tests__/queries.test.ts` | 4 | `getOrderByCheckoutSessionId` maps rows to `OrderSummary` + items and returns `null` for unknown/missing/DB-failure cases (Supabase mocked). |
+| `src/lib/stripe/__tests__/server.test.ts` | 2 | `getStripe` singleton with `STRIPE_SECRET_KEY`; `verifyStripeWebhook` accepts a valid signature and throws on a bad signature/key. |
+| `src/lib/email/__tests__/template.test.ts` | 3 | `renderOrderConfirmation` emits es-ES house HTML (brand, reference, session link, lines, subtotal/total, catalog link) and escapes HTML-sensitive user data. |
+| `src/lib/email/__tests__/send.test.ts` | 4 | `sendOrderConfirmation`: valid payload → Resend call with `EMAIL_FROM`; provider error and thrown provider call → `{ok:false}` (never throws); invalid payload → no Resend call. |
 
 ### App layer
 
@@ -79,6 +84,9 @@ and `Tests 162 passed (162)`.
 | `src/app/(storefront)/productos/[slug]/__tests__/page.test.tsx` | 5 | `notFound` on an unknown slug; detail renders a truthful `AGOTADO` state (disabled add-to-cart); per-size availability; `generateMetadata` SEO output for published products and empty metadata for unknown slugs. |
 | `src/app/(storefront)/productos/__tests__` via `productos-page.test.tsx` | 5 | `CatalogPage` empty state (`NADA POR AQUÍ`), product grid + count + `Ver más`, server-side filters flowing into the catalog query, and `loadMoreHref` preserving filters while only bumping the page / omitting defaults. |
 | `src/app/(storefront)/carrito/__tests__/page.test.tsx` | 3 | Metadata title; re-resolves the cookie via mocked `readCart` + `resolveCart` and renders lines/totals; empty state with a CTA back to the catalog. |
+| `src/app/api/webhooks/stripe/__tests__/route.test.ts` | 9 | Signature failure → 400 without processing; non-completed events ignored; retrieve failure → 500; paid order records the RPC with session data and sends the email once; replay (`exists`) and `stock_failed` skip the email; email failure / missing customer email mark `email_status=failed` and still answer 200; RPC error → 500. |
+| `src/app/(storefront)/checkout/success/__tests__/page.test.tsx` | 5 | Redirects home without `session_id`; soft "confirming" state while the webhook has not landed / read fails; renders the stored order summary once confirmed (lines, totals); stock-failed notice; `ClearCartOnce` clears the cart. |
+| `src/app/(storefront)/checkout/cancel/__tests__/page.test.tsx` | 2 | Friendly cancel message, cart untouched, links kept to cart/catalog. |
 
 ### Component layer
 
@@ -92,8 +100,8 @@ and `Tests 162 passed (162)`.
 | `sort-select.test.tsx` | 2 | Selects the current sort from the URL and rewrites the URL preserving the other filters. |
 | `filter-form.test.tsx` | 5 | Collapsible filter groups as a disclosure accordion: all groups closed by default with hidden panels, independent toggling (opening one keeps others open), Limpiar pointing to `/productos` and collapsing every group, defaults re-derived from a clean URL after navigation, and an active-filter group rendering closed with its removable chip. |
 | `add-to-cart-form.test.tsx` | 4 | Enforces explicit size selection (prompts before adding), adds the selected size and opens the sheet, surfaces server-action errors, and the sold-out branch without a size selector. |
-| `cart/cart-sheet.test.tsx` | 7 | Empty state; lines + live subtotal + disabled checkout CTA (003 placeholder); full-cart `/carrito` link; ESC/Cerrar dismissal; focus to the panel, scroll-lock on open and restore on close. |
-| `cart/cart-lines.test.tsx` | 6 | Steppers bounded by stock and quantity one, removal with `router.refresh()`, unavailable lines (disabled steppers, badged), and the invalid-cart CTA message. |
+| `cart/cart-sheet.test.tsx` | 7 | Empty state; lines + live subtotal + disabled checkout CTA for an invalid cart; full-cart `/carrito` link; ESC/Cerrar dismissal; focus to the panel, scroll-lock on open and restore on close. |
+| `cart/cart-lines.test.tsx` | 6 | Steppers bounded by stock and quantity one, removal with `router.refresh()`, unavailable lines (disabled steppers, badged), and the enabled checkout CTA which opens the Stripe session URL via `createCheckoutSession` ("Abriendo pago…" pending state) and surfaces load errors inline. |
 | `empty-state.test.tsx` | 2 | `NADA POR AQUÍ` stamp with a reset link, and an honoured custom `resetHref`. |
 | `load-more-button.test.tsx` | 2 | Renders nothing without more pages, links to the next page otherwise. |
 
@@ -136,3 +144,8 @@ and `Tests 162 passed (162)`.
   tests await it with `waitFor`; the second of two rapid clicks on a stepper
   is swallowed by `useTransition`'s `pending`, so +/- paths are separate
   tests.
+- **Vitest 4.1.10 regression (#10845):** a rejection produced by
+  `mockRejectedValue` that the code under test *catches* is still reported as
+  a test error when the mock is reset in `beforeEach` (`mock.reset()` /
+  `mockClear`). Workaround in `src/lib/email/__tests__/send.test.ts`: the mock
+  is reset in `afterEach` instead, keeping the fail-open tests green.

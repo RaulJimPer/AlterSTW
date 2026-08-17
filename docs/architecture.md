@@ -32,7 +32,7 @@ alterstw/
 │   ├── seed.ts               # Demo catalog seed (service role, idempotent)
 │   └── __tests__/            # seed-catalog.test.ts (offline catalog checks)
 ├── src/
-│   ├── app/                  # App Router (storefront routes)
+│   ├── app/                  # App Router (storefront routes + webhook)
 │   │   ├── layout.tsx        # Root layout + last-resort error boundary
 │   │   ├── globals.css
 │   │   ├── robots.ts         # robots.txt (static)
@@ -44,9 +44,15 @@ alterstw/
 │   │   │   ├── error.tsx     # Storefront error boundary (client)
 │   │   │   ├── not-found.tsx
 │   │   │   ├── carrito/      # Full cart page (server-rendered)
+│   │   │   ├── checkout/     # Checkout result pages (noindex, server-rendered)
+│   │   │   │   ├── success/  # Order summary slip / soft "confirming" state
+│   │   │   │   └── cancel/   # Friendly cancellation message
 │   │   │   └── productos/
 │   │   │       ├── page.tsx              # Catalog: filters + pagination
 │   │   │       └── [slug]/page.tsx       # Product detail + generateMetadata
+│   │   ├── api/
+│   │   │   └── webhooks/
+│   │   │       └── stripe/route.ts       # Signed, idempotent payment webhook
 │   │   └── __tests__/        # page.test.tsx, sitemap.test.ts
 │   ├── components/
 │   │   └── storefront/       # Business components (+ __tests__ colocated)
@@ -57,6 +63,7 @@ alterstw/
 │   │       │   sort-select.tsx           # Client filtering UI (client)
 │   │       ├── size-chips.tsx, add-to-cart-form.tsx   # Detail interaction (client)
 │   │       ├── cart/          # cart-context, cart-sheet, cart-lines (client)
+│   │       ├── checkout/      # clear-cart-once.tsx (client one-shot clear)
 │   │       ├── empty-state.tsx, load-more-button.tsx   # Catalog states
 │   │       └── …
 │   └── lib/
@@ -75,11 +82,26 @@ alterstw/
 │       │   ├── cart.ts       # alterstw_cart session cookie read/write
 │       │   ├── queries.ts    # resolveCart: DB price + per-size stock
 │       │   └── actions.ts    # Server actions (addToCart, setQuantity, removeLine)
+│       ├── checkout/         # Checkout domain 
+│       │   └── actions.ts    # createCheckoutSession, clearCartAfterOrder (server)
+│       ├── orders/           # Order records + RPC glue 
+│       │   ├── types.ts      # OrderStatus / OrderSummary / CheckoutResult
+│       │   ├── zod.ts        # RPC input schemas (order lines)
+│       │   └── queries.ts    # getOrderByCheckoutSessionId (service role)
+│       ├── email/            # Transactional email 
+│       │   ├── types.ts, zod.ts          # OrderConfirmationEmailInput contracts
+│       │   ├── client.ts     # Resend client (RESEND_API_KEY, server-only)
+│       │   ├── template.ts   # House HTML renderer (es-ES)
+│       │   └── send.ts       # sendOrderConfirmation (best-effort, never throws)
+│       ├── stripe/           # Stripe server glue 
+│       │   ├── server.ts     # getStripe + verifyStripeWebhook (server-only)
+│       │   └── events.ts     # Webhook event Zod schemas
 │       ├── validation/       # Zod schemas for all input (catalog.ts)
 │       └── supabase/
-│           └── server.ts     # Server client (anon key + RLS, cookies)
+│           ├── server.ts     # Server client (anon key + RLS, cookies)
+│           └── service.ts    # Service-role client (webhook + order reads only)
 ├── supabase/
-│   └── migrations/           # 001_catalog.sql, 002_catalog_search.sql
+│   └── migrations/           # 001_catalog.sql, 002_catalog_search.sql, 003_orders.sql
 ├── .env.example              # Configuration template (copy to .env.local)
 ├── .gitignore
 ├── eslint.config.mjs
@@ -128,6 +150,16 @@ specs), `.opencode/`, `.agents/`, `opencode.json`, `skills-lock.json`,
   (`lib/cart/actions.ts`) that re-validate price + per-size stock against the
   DB before writing the cookie; totals are computed in exact cents
   server-side.
+- **Checkout**: the cart strip CTA calls the
+  `createCheckoutSession` server action (`lib/checkout/actions.ts`), which
+  re-validates the cart and per-size stock, builds Stripe `line_items` (EUR,
+  with `product_slug`/`product_id` metadata) and redirects to Stripe
+  Checkout. Off-session, `/checkout/success` reads the stored order by
+  `checkout_session_id` (service-role) and either renders the paper-style
+  summary slip or a soft "confirming…" state until the webhook lands; a
+  one-shot client component `clear-cart-once.tsx` clears the cart cookie once
+  the order is confirmed. `/checkout/cancel` explains the aborted payment and
+  leaves the cart intact. Both pages are `noindex`d.
 - **SEO**: `robots.ts` and a catalog-driven `sitemap.ts`; both are static-safe
   and degrade to the base pages if Supabase is unreachable.
 - **Styling**: Tailwind CSS v4 utilities in `globals.css`, following the
@@ -141,13 +173,21 @@ specs), `.opencode/`, `.agents/`, `opencode.json`, `skills-lock.json`,
   adds `catalog_products_v`, a `security_invoker` view aggregating stock and
   available sizes per product so filtering (`talla`, `av`) and pagination run
   at the database level. Money is integer EUR cents everywhere.
+- **Orders ** — `supabase/migrations/003_orders.sql`: `orders`,
+  `order_items` and the `order_status`/`email_status` enums, RLS forced with
+  **no policies** (only the service role and the RPC touch them), plus the
+  transactional `record_checkout_payment` RPC — the single write path that
+  inserts the order, inserts items and decrements per-size stock in one
+  transaction, idempotent via `checkout_session_id` and reporting
+  `paid` | `stock_failed` | `exists`.
 - **Queries** (`lib/catalog/queries.ts`): the storefront interacts only with
   the `catalog_products_v` view (and `product_sizes` for the detail) through
   the **anon** client — never the service role at runtime.
-- **Client factory** (`lib/supabase/server.ts`): `@supabase/ssr`
-  `createServerClient` with cookie handling; requires
-  `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY`. RLS is the
-  access boundary; there is no app-level auth yet (feature 004).
+- **Client factories** (`lib/supabase/`): `server.ts` is `@supabase/ssr`
+  `createServerClient` with cookie handling for storefront reads (anon key +
+  RLS, no app-level auth yet — feature 004); `service.ts` creates the
+  **service-role** client used exclusively by the webhook handler and order
+  reads, so the elevated key never reaches the browser.
 - **Availability badges**: computed in the app (`lib/catalog/availability.ts`,
   a 14-day NUEVO window, stock ≤ 3 → ÚLTIMAS, stock 0 → AGOTADO), not stored.
 - **Cart backend**: `lib/cart/cart.ts` reads/writes the session cookie
@@ -158,6 +198,24 @@ specs), `.opencode/`, `.agents/`, `opencode.json`, `skills-lock.json`,
   `lib/cart/actions.ts` exposes `addToCart`, `setQuantity` and `removeLine`
   as server actions, all Zod-validated, DB-checked, and finalized with
   `revalidatePath("/", "layout")`.
+- **Checkout **: `lib/checkout/actions.ts` —
+  `createCheckoutSession` (Zod + cart re-validation + hard stock gate →
+  `{ ok, url }`, `success_url`/`cancel_url` via `NEXT_PUBLIC_SITE_URL` with
+  `{CHECKOUT_SESSION_ID}` templating) and `clearCartAfterOrder`.
+  `lib/orders/queries.ts` maps order rows to an `OrderSummary` for the success
+  page. `lib/stripe/server.ts` holds the Stripe server client
+  (`STRIPE_SECRET_KEY`) and `verifyStripeWebhook` (raw-body signature check).
+- **Webhook** (`app/api/webhooks/stripe/route.ts`): verifies the Stripe
+  signature, parses the event with Zod (`lib/stripe/events.ts`), and on
+  `checkout.session.completed` calls the `record_checkout_payment` RPC
+  (idempotent, atomic stock). On `paid` it sends the confirmation email;
+  `stock_failed` orders never apply a partial discount and still answer 200
+  to stop Stripe retries.
+- **Email **: `lib/email/` — `client.ts` (Resend server SDK with
+  `RESEND_API_KEY`), `template.ts` (house es-ES HTML renderer),
+  `send.ts` (`sendOrderConfirmation`, **best-effort — never throws**, tracks
+  `orders.email_status`/`email_sent_at`). Sent only from the webhook after
+  the first `paid` insert, so replays (`exists`) skip it.
 - **Seed** (`scripts/seed.ts`): standalone Node script that uses the
   **service role** (from `.env.local`, `SUPABASE_SERVICE_ROLE_KEY`) to upsert
   categories/products/sizes idempotently. The catalog is exported from the
@@ -176,5 +234,7 @@ specs), `.opencode/`, `.agents/`, `opencode.json`, `skills-lock.json`,
 - **Money as integer cents**, formatted via `Intl` (`es-ES`, EUR).
 - **Security**: secrets live only in `.env.local` (gitignored); the browser
   bundle only ever sees the Supabase anon key and the Stripe publishable key;
-  the Stripe secret and webhook secret are server-only. npm 12 supply-chain
-  hardening (`allowScripts`, `min-release-age=3`) is the install gate.
+  the service-role key, Stripe secret/webhook secret and Resend key are
+  server-only, and the service-role client is used exclusively by the webhook
+  and order reads. npm 12 supply-chain hardening (`allowScripts`,
+  `min-release-age=3`) is the install gate.

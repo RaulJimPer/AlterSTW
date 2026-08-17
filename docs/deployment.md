@@ -12,8 +12,7 @@ How to install, configure, run, and deploy AlterSTW.
 - **Git** (to clone the repository).
 - A **Supabase project** (PostgreSQL + Auth + Storage + RLS) for the catalog
   database.
-- A **Stripe account** with API keys and (once feature 003 lands) a webhook
-  endpoint for checkout.
+- A **Stripe account** with API keys and  a webhook endpoint for checkout.
 
 ## 2. Installation
 
@@ -40,10 +39,13 @@ copy .env.example .env.local
 |----------|---------------------|
 | `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL. Safe to expose. |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Public key; RLS protects the data. Safe to expose. |
-| `SUPABASE_SERVICE_ROLE_KEY` | Server-only, used by `npm run seed` — never used by the app runtime, never exposed to the browser. |
-| `STRIPE_SECRET_KEY` | Server-only (feature 003). |
-| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Publishable Stripe key for the browser (feature 003). |
-| `STRIPE_WEBHOOK_SECRET` | Server-only, for signed webhook verification (feature 003). |
+| `SUPABASE_SERVICE_ROLE_KEY` | Server-only, used by `npm run seed` and by the order/email write path (webhook) — never exposed to the browser. |
+| `STRIPE_SECRET_KEY` | Server-only . |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Publishable Stripe key for the browser . |
+| `STRIPE_WEBHOOK_SECRET` | Server-only, for signed webhook verification . |
+| `NEXT_PUBLIC_SITE_URL` | Canonical site URL (prod: your domain); used in `sitemap.ts`, `robots.ts` and checkout success/cancel URLs. |
+| `RESEND_API_KEY` | Server-only ; order confirmation email. Dev uses the `resend.dev` inbox, prod a verified domain. |
+| `EMAIL_FROM` | Server-only "Name <address>" sender for confirmation emails (must be verified in Resend). |
 
 > `.env.local` is gitignored and must never be committed. Missing required
 > variables fail fast at runtime (the server client throws).
@@ -52,13 +54,18 @@ copy .env.example .env.local
 
 The schema is managed through **SQL migrations** in `supabase/migrations/`
 (`001_catalog.sql` defines the RLS tables, `002_catalog_search.sql` the
-`catalog_products_v` view). The project has **no local Supabase CLI
+`catalog_products_v` view, `003_orders.sql` the orders + order_items tables,
+the `email_status`/`order_status` enums and the transactional
+`record_checkout_payment` RPC). The project has **no local Supabase CLI
 configuration** (`supabase/config.toml`); apply the SQL to your project in
 order through the Supabase **SQL editor** (migrations are recorded in
 `docs/`/`spec`, the applied state lives in the project):
 
 1. `001_catalog.sql` — tables + indexes + RLS policies.
 2. `002_catalog_search.sql` — the storefront view.
+3. `003_orders.sql` — orders/order_items (service-role writes only, RLS
+   forced without policies), `record_checkout_payment` RPC — the single
+   transactional write path for paid / stock_failed orders.
 
 Migrate first, then seed the demo catalog (idempotent — upserts by `slug`):
 
@@ -101,15 +108,25 @@ The seed script is re-runnable whenever the demo data changes
   variables in the host.
 - **Server-only secrets** must be configured on the host environment, never
   in a client bundle: `SUPABASE_SERVICE_ROLE_KEY`, `STRIPE_SECRET_KEY`,
-  `STRIPE_WEBHOOK_SECRET`.
-- **Data access** is enforced by Row Level Security: even with the anon key
-  public, the storefront only reads published rows. Do not disable FORCE RLS.
-- **Payments** (feature 003): Stripe Checkout Sessions + a signed webhook
-  confirm orders server-side; register the endpoint with
-  `STRIPE_WEBHOOK_SECRET` and switch to live keys only when ready.
+  `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY`, `EMAIL_FROM`.
+- **Data access** is enabled by Row Level Security: even with the anon key
+  public, the storefront only reads published rows; order writes are reserved
+  for the service role through the `record_checkout_payment` RPC. Do not
+  disable FORCE RLS.
+- **Payments** : Stripe Checkout Sessions + a signed webhook
+  confirm orders server-side. In dev run
+  `stripe listen --forward-to http://localhost:3000/api/webhooks/stripe` and
+  use the printed `whsec_…` as `STRIPE_WEBHOOK_SECRET`. In production register
+  the endpoint `https://<your-domain>/api/webhooks/stripe`
+  (`checkout.session.completed`) and keep live keys + `STRIPE_WEBHOOK_SECRET`
+  on the host.
+- **Email** : Resend. Dev/testing uses the project's `resend.dev`
+  inbox as `EMAIL_FROM`; production requires a **verified sending domain** in
+  Resend (DNS) and `RESEND_API_KEY` + `EMAIL_FROM` configured on the host. The
+  webhook is best-effort: a provider failure never fails the order.
 - **Static output**: the storefront currently has dynamic routes
-  (`/productos`, `/productos/[slug]`, sitemap); a pure static deploy is not
-  supported at this stage.
+  (`/productos`, `/productos/[slug]`, `/checkout/success`, `/carrito`,
+  sitemap); a pure static deploy is not supported at this stage.
 
 ## 7. Troubleshooting
 

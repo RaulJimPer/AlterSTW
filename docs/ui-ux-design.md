@@ -245,7 +245,7 @@ links; the whole frame is clickable with a visible focus outline.
 - Cart opens as a right-side sheet: line rows (thumb + name + size + hanging
   price per line), quantity steppers (2px), subtotal block, primary checkout
   CTA. Empty cart shows a purple stamp “NADA POR AQUÍ” + CTA to the catalog.
-- Checkout delegates to **Stripe Checkout** (feature 003); local surfaces stay
+- Checkout delegates to **Stripe Checkout** ; local surfaces stay
   minimal paper blocks. Success/cancel pages: simple, branded small stamps,
   no spam.
 
