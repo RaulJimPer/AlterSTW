@@ -3,13 +3,30 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { removeLine, setQuantity } from "@/lib/cart/actions";
+import { createCheckoutSession } from "@/lib/checkout/actions";
 import { formatPrice } from "@/lib/catalog/format";
 import type { CartLineItem, CartState } from "@/lib/cart/types";
 import { StampBadge } from "../stamp-badge";
 
 export function CartLines({ cart }: { cart: CartState }) {
+  const router = useRouter();
+  const [checkoutPending, startCheckoutTransition] = useTransition();
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
+
+  const checkout = () => {
+    setCheckoutError(null);
+    startCheckoutTransition(async () => {
+      const result = await createCheckoutSession();
+      if (result.ok) {
+        router.push(result.url);
+      } else {
+        setCheckoutError(result.error);
+      }
+    });
+  };
+
   if (cart.lines.length === 0) {
     return (
       <div className="flex flex-col items-center gap-4 py-12 text-center">
@@ -44,16 +61,18 @@ export function CartLines({ cart }: { cart: CartState }) {
         <div className="mt-4 flex flex-col gap-2">
           <button
             type="button"
-            disabled
-            title={cart.valid ? undefined : "Ajusta las cantidades al stock disponible."}
-            className="btn-primary w-full opacity-50"
+            disabled={!cart.valid || checkoutPending}
+            onClick={checkout}
+            className="btn-primary w-full disabled:opacity-50"
           >
-            Finalizar compra
+            {checkoutPending ? "Abriendo pago…" : "Finalizar compra"}
           </button>
           <p role="status" aria-live="polite" className="text-xs text-ink/60">
-            {cart.valid
-              ? "La pasarela de pago llega en la siguiente actualización."
-              : "Ajusta la cantidad de cada talla al stock disponible."}
+            {checkoutError
+              ? checkoutError
+              : cart.valid
+                ? "Pago seguro con Stripe · Sin incluir envío."
+                : "Ajusta la cantidad de cada talla al stock disponible."}
           </p>
         </div>
       </div>

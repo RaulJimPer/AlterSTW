@@ -8,8 +8,16 @@ vi.mock("next/image", () => ({
   ),
 }));
 
+const { createCheckoutSessionMock } = vi.hoisted(() => ({
+  createCheckoutSessionMock: vi.fn(() => Promise.resolve({ ok: true, url: "https://pay.stripe.com/test" })),
+}));
+
+vi.mock("@/lib/checkout/actions", () => ({
+  createCheckoutSession: createCheckoutSessionMock,
+}));
+
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ refresh: vi.fn() }),
+  useRouter: () => ({ refresh: vi.fn(), push: vi.fn() }),
 }));
 
 import { CartSheet } from "@/components/storefront/cart/cart-sheet";
@@ -49,7 +57,7 @@ describe("CartSheet", () => {
     );
   });
 
-  it("renders lines, the live subtotal and the disabled checkout CTA", () => {
+  it("renders lines, the live subtotal and the enabled checkout CTA", () => {
     const cart = buildCartState([AVAILABLE_TEE]);
     render(<CartSheet cart={cart} open onClose={() => {}} />);
 
@@ -59,10 +67,10 @@ describe("CartSheet", () => {
     expect(screen.getAllByText("50,00 €")).toHaveLength(2);
     expect(
       screen.getByRole("button", { name: "Finalizar compra" }),
-    ).toBeDisabled();
-    // 003 ships the checkout; until then the CTA explains itself.
+    ).toBeEnabled();
+    // 003 wires the checkout: the CTA opens a Stripe session.
     expect(
-      screen.getByText(/La pasarela de pago llega en la siguiente actualización\./),
+      screen.getByText(/Pago seguro con Stripe · Sin incluir envío\./),
     ).toBeInTheDocument();
   });
 

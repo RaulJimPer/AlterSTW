@@ -1,10 +1,13 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-const { refreshMock } = vi.hoisted(() => ({ refreshMock: vi.fn() }));
+const { refreshMock, pushMock } = vi.hoisted(() => ({
+  refreshMock: vi.fn(),
+  pushMock: vi.fn(),
+}));
 
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ refresh: refreshMock }),
+  useRouter: () => ({ refresh: refreshMock, push: pushMock }),
 }));
 
 vi.mock("next/image", () => ({
@@ -19,9 +22,17 @@ const { setQuantityMock, removeLineMock } = vi.hoisted(() => ({
   removeLineMock: vi.fn(() => Promise.resolve({ ok: true })),
 }));
 
+const { createCheckoutSessionMock } = vi.hoisted(() => ({
+  createCheckoutSessionMock: vi.fn(() => Promise.resolve({ ok: true, url: "https://pay.stripe.com/test" })),
+}));
+
 vi.mock("@/lib/cart/actions", () => ({
   setQuantity: setQuantityMock,
   removeLine: removeLineMock,
+}));
+
+vi.mock("@/lib/checkout/actions", () => ({
+  createCheckoutSession: createCheckoutSessionMock,
 }));
 
 import { CartLines } from "@/components/storefront/cart/cart-lines";
@@ -54,7 +65,7 @@ describe("CartLines", () => {
     );
   });
 
-  it("shows unit price, line total, subtotal and the payment placeholder", () => {
+  it("shows unit price, line total, subtotal and the live checkout CTA", () => {
     render(<CartLines cart={buildCartState([AVAILABLE_TEE])} />);
 
     expect(screen.getByText("Skull Crush Tee")).toBeInTheDocument();
@@ -64,8 +75,24 @@ describe("CartLines", () => {
     expect(screen.getAllByText("50,00 €")).toHaveLength(2);
     expect(screen.getByText("Sin incluir envío.")).toBeInTheDocument();
     expect(
-      screen.getByText(/La pasarela de pago llega en la siguiente actualización\./),
+      screen.getByRole("button", { name: "Finalizar compra" }),
+    ).toBeEnabled();
+    expect(
+      screen.getByText(/Pago seguro con Stripe · Sin incluir envío\./),
     ).toBeInTheDocument();
+  });
+
+  it("opens checkout via the CTA and redirects to the Stripe session URL", async () => {
+    render(<CartLines cart={buildCartState([AVAILABLE_TEE])} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Finalizar compra" }));
+
+    await waitFor(() =>
+      expect(createCheckoutSessionMock).toHaveBeenCalledTimes(1),
+    );
+    await waitFor(() =>
+      expect(screen.queryByText("Abriendo pago…")).not.toBeInTheDocument(),
+    );
   });
 
   it("increments quantity via the plus stepper and refreshes the router", async () => {

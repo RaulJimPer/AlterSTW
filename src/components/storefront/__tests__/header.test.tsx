@@ -3,6 +3,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("next/navigation", () => ({
   usePathname: () => mockPathname,
+  useRouter: () => ({ refresh: vi.fn(), push: vi.fn() }),
+}));
+
+vi.mock("@/lib/checkout/actions", () => ({
+  createCheckoutSession: vi.fn(() =>
+    Promise.resolve({ ok: true, url: "https://pay.stripe.com/test" }),
+  ),
 }));
 
 let mockPathname = "/";
