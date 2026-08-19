@@ -61,6 +61,12 @@ export async function uploadProductImage(
   return { ok: true, path, url: publicUrl.publicUrl };
 }
 
+export function storagePathFromUrl(url: string): string {
+  const marker = "/object/public/";
+  const index = url.indexOf(marker);
+  return index === -1 ? url : url.slice(index + marker.length);
+}
+
 export async function deleteProductImage(
   storagePath: string,
 ): Promise<ImageDeleteResult> {

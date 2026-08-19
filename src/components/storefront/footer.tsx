@@ -38,10 +38,18 @@ export function Footer({ categories }: { categories: Category[] }) {
             <FlashSticker color="purple" label="2.ª MANO" />
             <FlashSticker color="red" label="EDICIÓN LIMITADA" />
           </div>
-          <p className="text-xs text-paper/60">
-            © {new Date().getFullYear()} AlterSTW · imprenta punk con acento
-            andaluz
-          </p>
+          <div className="flex flex-wrap items-center gap-3">
+            <p className="text-xs text-paper/60">
+              © {new Date().getFullYear()} AlterSTW · imprenta punk con acento
+              andaluz
+            </p>
+            <Link
+              href="/admin/login"
+              className="text-xs text-paper/40 hover:text-paper/70"
+            >
+              Acceso admin
+            </Link>
+          </div>
         </div>
       </div>
     </footer>

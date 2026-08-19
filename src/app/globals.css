@@ -87,6 +87,19 @@
   .field {
     @apply w-full border border-rule bg-paper px-2 py-2 text-sm text-ink focus:border-red focus:outline-none;
   }
+
+  /* Panel de administración: estilo sobrio y neutro, sin la estética de la tienda. */
+  .admin-field {
+    @apply w-full rounded border border-[#d4d4d8] bg-white px-3 py-2 text-sm text-[#18181b] focus:border-[#18181b] focus:outline-none focus:ring-2 focus:ring-[#18181b]/10;
+  }
+
+  .admin-btn {
+    @apply inline-flex min-h-10 items-center justify-center gap-2 rounded border border-[#d4d4d8] bg-white px-3 py-2 text-xs font-semibold uppercase tracking-wide text-[#18181b] transition-colors hover:bg-[#18181b] hover:text-white disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  .admin-btn-primary {
+    @apply inline-flex min-h-10 items-center justify-center gap-2 rounded border border-[#18181b] bg-[#18181b] px-3 py-2 text-xs font-semibold uppercase tracking-wide text-white transition-colors hover:bg-[#27272a] disabled:pointer-events-none disabled:opacity-50;
+  }
 }
 
 /* Grain: a very light ink noise overlay for hero/void blocks only.
