@@ -17,6 +17,30 @@ export const EMAIL_STATUS_LABELS: Record<EmailStatus, string> = {
   failed: "Falló",
 };
 
+export const SIZE_OPTIONS = [
+  "XS",
+  "S",
+  "M",
+  "L",
+  "XL",
+  "2XL",
+  "3XL",
+  "4XL",
+  "5XL",
+  "36",
+  "38",
+  "40",
+  "42",
+  "44",
+  "46",
+  "48",
+  "50",
+  "52",
+  "Talla única",
+] as const;
+
+export const SIZE_OTHER = "Otra talla…";
+
 export function formatDate(iso: string): string {
   return new Intl.DateTimeFormat("es-ES", {
     dateStyle: "medium",

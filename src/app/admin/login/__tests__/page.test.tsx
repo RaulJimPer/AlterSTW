@@ -17,5 +17,8 @@ describe("AdminLoginPage", () => {
     expect(screen.getByLabelText("Email")).toBeInTheDocument();
     expect(screen.getByLabelText("Contraseña")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Entrar" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /Volver a la tienda/ }),
+    ).toHaveAttribute("href", "/");
   });
 });

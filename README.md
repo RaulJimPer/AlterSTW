@@ -17,8 +17,8 @@ admin panel with an analytics dashboard for the owner.
   atomic per-size stock decrement.
 - **Order confirmation email** — transactional email via Resend,
   best-effort and tracked in the order record.
-- **Admin panel** *(planned)* — product publishing and inventory management
-  for the owner.
+- **Admin panel** — private product publishing, inventory and read-only
+  order history for the owner (Supabase Auth + `admin_users` RLS).
 - **Analytics dashboard** *(planned)* — sales, visits and conversion-rate
   metrics with Recharts.
 - **Security by default** — Supabase Row Level Security, strict TypeScript,
@@ -41,6 +41,7 @@ copy .env.example .env.local   # fill in Supabase / Stripe / Resend keys
 #    supabase/migrations/001_catalog.sql
 #    supabase/migrations/002_catalog_search.sql
 #    supabase/migrations/003_orders.sql
+#    supabase/migrations/004_admin.sql
 
 # 4. Seed demo catalog (idempotent)
 npm run seed
@@ -61,7 +62,7 @@ Then open <http://localhost:3000>. Pay with Stripe test card `4242 4242 4242
 | [Features](docs/features.md) | Storefront, cart, checkout, admin panel, analytics dashboard and future extensions |
 | [Tech Stack](docs/tech-stack.md) | Every technology, version, and the rationale behind it |
 | [Architecture](docs/architecture.md) | Repository layout as it exists in git, RSC-first frontend and data-layer glue |
-| [Testing](docs/testing.md) | Testing strategy, how to run the suite and the coverage of all 278 tests across 48 files |
+| [Testing](docs/testing.md) | Testing strategy, how to run the suite and the coverage of all 284 tests across 49 files |
 | [Deployment](docs/deployment.md) | Install, configure, migrate, seed, run and production notes |
 | [Demo seed catalog](docs/seed-catalog.md) | Source of truth for the 12 demo products written by `npm run seed` |
 | [UI/UX design](docs/ui-ux-design.md) | Visual identity, accessibility and responsive rules |
@@ -104,7 +105,6 @@ npm run build
 ## Status
 
 > **In development.** The storefront is fully functional end-to-end: catalog,
-> cart and checkout with Stripe payments and confirmation emails (features
-> 001–003 complete, all gates green and QA-verified). The admin panel and
-> analytics dashboard are next on the roadmap (`spec/constitution/roadmap.md`);
-> features and behavior may still change.
+> cart and checkout with Stripe payments and confirmation emails. The admin panel
+> is complete and QA-verified by the owner (migration applied, admin
+> account granted). The analytics dashboard is next on the roadmap; features and behavior may still change.

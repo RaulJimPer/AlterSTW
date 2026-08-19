@@ -9,19 +9,15 @@ export type ImageUploadResult =
 
 export type ImageDeleteResult = { ok: true } | { ok: false; error: string };
 
-function requiredBrowserEnv(name: string): string {
-  const value = process.env[name];
-  if (!value) {
-    throw new Error(`Missing environment variable ${name} in .env.local`);
+function createBrowserAdminClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !anonKey) {
+    throw new Error(
+      "Missing NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY in .env.local",
+    );
   }
-  return value;
-}
-
-export function createBrowserAdminClient() {
-  return createBrowserClient(
-    requiredBrowserEnv("NEXT_PUBLIC_SUPABASE_URL"),
-    requiredBrowserEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
-  );
+  return createBrowserClient(url, anonKey);
 }
 
 export function validateImageFile(file: File): string | null {

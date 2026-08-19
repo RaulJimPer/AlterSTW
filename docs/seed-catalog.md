@@ -1,6 +1,6 @@
 # AlterSTW — Demo seed catalog
 
-Source of truth for the demo rows written by `scripts/seed.ts` (feature 001).
+Source of truth for the demo rows written by `scripts/seed.ts`.
 The live product data lives in Supabase; this document is the human-readable
 reference the owner greets every dev environment with.
 

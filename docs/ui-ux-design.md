@@ -283,6 +283,13 @@ black/white with red details.
 > `#D4D4D8` / `#DC2626`), the sidebar renders Productos · Inventario · Pedidos,
 > and status/pricing read at a glance (pills, `tabular-nums`, es-ES dates).
 
+> **Post-review refinements**: the logout button moved from the sidebar bottom
+> to a top-right header next to the admin email; filters expose a single
+> "Limpiar filtros" reset; the sizes editor uses a dropdown of common sizes
+> with an "Otra talla…" free-text fallback; the login card links back to the
+> storefront below it. Product images are served through `next/image` with
+> `images.remotePatterns` allowing the Supabase storage host.
+
 ---
 
 ## 8. Accessibility (WCAG 2.2 AA)

@@ -58,6 +58,10 @@ export default async function AdminProductsPage({
     getCategories(),
   ]);
   const hasMore = filters.page * ADMIN_PAGE_SIZE < page.total;
+  const hasActiveFilters =
+    filters.status !== undefined ||
+    filters.categoryId !== undefined ||
+    filters.q !== undefined;
 
   const statusLink = (status: AdminProductFilters["status"], label: string) => {
     const active = filters.status === status;
@@ -143,6 +147,13 @@ export default async function AdminProductsPage({
             Buscar
           </button>
         </form>
+        {hasActiveFilters && (
+          <div className="flex justify-end border-t border-[#f4f4f5] pt-3">
+            <Link href="/admin/productos" className="admin-btn">
+              Limpiar filtros
+            </Link>
+          </div>
+        )}
       </div>
 
       {page.items.length === 0 ? (

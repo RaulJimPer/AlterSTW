@@ -115,6 +115,33 @@ describe("AdminProductsPage", () => {
     const more = screen.getByRole("link", { name: "Ver más" });
     expect(more).toHaveAttribute("href", "/admin/productos?page=2");
   });
+
+  it("does not show a reset-filters link when no filter is active", async () => {
+    getAdminProductsMock.mockResolvedValue({ items: [], total: 0 });
+
+    const element = await AdminProductsPage({
+      searchParams: Promise.resolve({}),
+    });
+    render(element);
+
+    expect(
+      screen.queryByRole("link", { name: "Limpiar filtros" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows a reset-filters link when a filter is active", async () => {
+    getAdminProductsMock.mockResolvedValue({ items: [], total: 0 });
+
+    const element = await AdminProductsPage({
+      searchParams: Promise.resolve({ status: "draft", categoryId: "1", q: "punk" }),
+    });
+    render(element);
+
+    expect(screen.getByRole("link", { name: "Limpiar filtros" })).toHaveAttribute(
+      "href",
+      "/admin/productos",
+    );
+  });
 });
 
 describe("productListHref", () => {

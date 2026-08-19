@@ -4,8 +4,12 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { saveSizes } from "@/lib/admin/actions";
 import { MAX_SIZES } from "@/lib/admin/zod";
+import { SIZE_OPTIONS, SIZE_OTHER } from "@/lib/admin/labels";
 
 type SizeRow = { size: string; stock: number; sortOrder: number };
+
+const SIZE_VALUES = SIZE_OPTIONS as readonly string[];
+const isKnownSize = (value: string) => SIZE_VALUES.includes(value);
 
 export function SizesEditor({
   slug,
@@ -82,14 +86,39 @@ export function SizesEditor({
               {rows.map((row, index) => (
                 <tr key={index} className="border-b border-[#f4f4f5] last:border-b-0">
                   <td className="px-3 py-2">
-                    <input
-                      value={row.size}
-                      onChange={(event) =>
-                        patchRow(index, { size: event.target.value })
-                      }
-                      maxLength={8}
-                      className="admin-field"
-                    />
+                    <div className="flex items-center gap-2">
+                      <select
+                        value={isKnownSize(row.size) ? row.size : SIZE_OTHER}
+                        onChange={(event) =>
+                          patchRow(index, {
+                            size:
+                              event.target.value === SIZE_OTHER
+                                ? row.size
+                                : event.target.value,
+                          })
+                        }
+                        className="admin-field min-w-28"
+                      >
+                        {SIZE_OPTIONS.map((size) => (
+                          <option key={size} value={size}>
+                            {size}
+                          </option>
+                        ))}
+                        <option value={SIZE_OTHER}>{SIZE_OTHER}</option>
+                      </select>
+                      {!isKnownSize(row.size) && (
+                        <input
+                          value={row.size}
+                          onChange={(event) =>
+                            patchRow(index, { size: event.target.value })
+                          }
+                          maxLength={24}
+                          placeholder="Otra talla…"
+                          aria-label={`Otra talla (fila ${index + 1})`}
+                          className="admin-field w-32"
+                        />
+                      )}
+                    </div>
                   </td>
                   <td className="px-3 py-2">
                     <input

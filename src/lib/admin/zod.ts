@@ -81,7 +81,7 @@ export const productFormSchema = z.object({
 export type ProductFormInput = z.infer<typeof productFormSchema>;
 
 export const sizeRowSchema = z.object({
-  size: z.string().trim().min(1).max(8),
+  size: z.string().trim().min(1).max(24),
   stock: z.coerce.number().int().min(0).max(9999),
   sortOrder: z.coerce.number().int().min(0),
 });
@@ -92,7 +92,7 @@ export type SizesFormInput = z.infer<typeof sizesFormSchema>;
 
 export const stockUpdateSchema = z.object({
   productId: z.coerce.number().int().positive(),
-  size: z.string().trim().min(1).max(8),
+  size: z.string().trim().min(1).max(24),
   stock: z.coerce.number().int().min(0).max(9999),
 });
 export type StockUpdateInput = z.infer<typeof stockUpdateSchema>;

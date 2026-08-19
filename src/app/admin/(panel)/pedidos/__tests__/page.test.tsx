@@ -100,6 +100,33 @@ describe("AdminOrdersPage", () => {
     const more = screen.getByRole("link", { name: "Ver más" });
     expect(more).toHaveAttribute("href", "/admin/pedidos?page=2");
   });
+
+  it("does not show a reset-filters link when no filter is active", async () => {
+    getAdminOrdersMock.mockResolvedValue({ items: [], total: 0 });
+
+    const element = await AdminOrdersPage({
+      searchParams: Promise.resolve({}),
+    });
+    render(element);
+
+    expect(
+      screen.queryByRole("link", { name: "Limpiar filtros" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows a reset-filters link when a filter is active", async () => {
+    getAdminOrdersMock.mockResolvedValue({ items: [], total: 0 });
+
+    const element = await AdminOrdersPage({
+      searchParams: Promise.resolve({ status: "stock_failed" }),
+    });
+    render(element);
+
+    expect(screen.getByRole("link", { name: "Limpiar filtros" })).toHaveAttribute(
+      "href",
+      "/admin/pedidos",
+    );
+  });
 });
 
 describe("orderListHref", () => {

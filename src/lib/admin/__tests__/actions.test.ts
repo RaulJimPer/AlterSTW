@@ -318,6 +318,26 @@ describe("saveSizes", () => {
     expect(ops).toEqual([]);
   });
 
+  it("accepts long custom sizes like Talla única", async () => {
+    const { ops } = stubDb([
+      { data: { id: 5 }, error: null },
+      { data: [], error: null },
+      { data: null, error: null },
+    ]);
+
+    const result = await saveSizes("camiseta", [
+      { size: "Talla única", stock: 2, sortOrder: 0 },
+    ]);
+
+    expect(result).toEqual({ ok: true });
+    expect(ops).toEqual([
+      {
+        op: "upsert",
+        payload: [{ product_id: 5, size: "Talla única", stock: 2, sort_order: 0 }],
+      },
+    ]);
+  });
+
   it("fails when the product is missing", async () => {
     const { ops } = stubDb([{ data: null, error: null }]);
 

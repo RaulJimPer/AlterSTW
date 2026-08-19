@@ -62,6 +62,8 @@ export default async function AdminOrdersPage({
   const filters = parseAdminOrderFilters(raw);
   const page = await getAdminOrders(filters);
   const hasMore = filters.page * ADMIN_PAGE_SIZE < page.total;
+  const hasActiveFilters =
+    filters.status !== undefined || filters.emailStatus !== undefined;
 
   return (
     <div className="flex flex-col gap-6">
@@ -120,6 +122,13 @@ export default async function AdminOrdersPage({
             />
           ))}
         </div>
+        {hasActiveFilters && (
+          <div className="flex justify-end border-t border-[#f4f4f5] pt-3">
+            <Link href="/admin/pedidos" className="admin-btn">
+              Limpiar filtros
+            </Link>
+          </div>
+        )}
       </div>
 
       {page.items.length === 0 ? (

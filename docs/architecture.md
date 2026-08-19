@@ -50,7 +50,7 @@ alterstw/
 │   │   │   └── productos/
 │   │   │       ├── page.tsx              # Catalog: filters + pagination
 │   │   │       └── [slug]/page.tsx       # Product detail + generateMetadata
-│   │   ├── admin/            # Private admin panel (feature 004)
+│   │   ├── admin/            # Private admin panel
 │   │   │   ├── layout.tsx    # noindex + panel background
 │   │   │   ├── login/        # /admin/login (outside the guarded group)
 │   │   │   └── (panel)/      # Guarded group: layout + pages
@@ -75,7 +75,7 @@ alterstw/
 │   │   │   ├── checkout/      # clear-cart-once.tsx (client one-shot clear)
 │   │   │   ├── empty-state.tsx, load-more-button.tsx   # Catalog states
 │   │   │   └── …
-│   │   └── admin/            # Admin panel components (feature 004)
+│   │   └── admin/            # Admin panel components
 │   │       ├── admin-shell.tsx, admin-nav.tsx   # Sidebar shell (server + client)
 │   │       ├── login-form.tsx                  # Client login form
 │   │       ├── product-form.tsx                # Create/edit product + images
@@ -88,11 +88,11 @@ alterstw/
 │       │   ├── availability.ts  # Badge computation (NUEVO / ÚLTIMAS / AGOTADO)
 │       │   ├── format.ts     # es-ES EUR formatting (integer cents)
 │       │   └── search-params.ts  # URL param patch/format helpers
-│       ├── auth/             # Admin auth (feature 004)
+│       ├── auth/             # Admin auth
 │       │   ├── zod.ts        # loginSchema
 │       │   ├── actions.ts    # loginWithPassword, logout (server actions)
 │       │   └── guard.ts      # getAdminUser / requireAdmin
-│       ├── admin/            # Admin domain (feature 004)
+│       ├── admin/            # Admin domain
 │       │   ├── types.ts, zod.ts, labels.ts   # Contracts, filters, es-ES labels
 │       │   ├── slug.ts       # slugify / makeUniqueSlug (pure)
 │       │   ├── queries.ts    # Admin reads (anon client + RLS)
@@ -168,7 +168,7 @@ specs), `.opencode/`, `.agents/`, `opencode.json`, `skills-lock.json`,
   badges/prices/size chips, and exports `generateMetadata` for SEO. Unknown
   slugs `notFound()`. The `AddToCartForm` (client) requires an explicit size
   and calls the `addToCart` server action.
-- **Cart** (feature 002): `(storefront)/layout.tsx` reads the `alterstw_cart`
+- **Cart**: `(storefront)/layout.tsx` reads the `alterstw_cart`
   session cookie and resolves it into a server-validated `CartState` passed to
   a `CartProvider`; the masthead badge (`header.tsx`) and the slide-over
   `CartSheet` render the same state, and `/carrito` re-resolves it on a
@@ -188,7 +188,7 @@ specs), `.opencode/`, `.agents/`, `opencode.json`, `skills-lock.json`,
   leaves the cart intact. Both pages are `noindex`d.
 - **SEO**: `robots.ts` and a catalog-driven `sitemap.ts`; both are static-safe
   and degrade to the base pages if Supabase is unreachable.
-- **Admin panel** (feature 004): a real `admin/` path segment (a bare route
+- **Admin panel**: a real `admin/` path segment (a bare route
   group would have collapsed into `/productos` and collided with the
   storefront). `admin/layout.tsx` sets `noindex`; `/admin/login` sits
   **outside** the guarded `(panel)` group, whose layout calls `requireAdmin()`
@@ -229,7 +229,7 @@ specs), `.opencode/`, `.agents/`, `opencode.json`, `skills-lock.json`,
   `service.ts` creates the **service-role** client used exclusively by the
   webhook handler and order reads, so the elevated key never reaches the
   browser.
-- **Admin auth & RLS** (feature 004): `lib/auth/` (`loginSchema` +
+- **Admin auth & RLS**: `lib/auth/` (`loginSchema` +
   `loginWithPassword`/`logout` server actions + `getAdminUser`/`requireAdmin`)
   authenticates with Supabase Auth (email+password, login only). Admin
   identity is a `admin_users` table enforced by the `is_admin()` function
@@ -244,7 +244,11 @@ specs), `.opencode/`, `.agents/`, `opencode.json`, `skills-lock.json`,
   `updateProduct` — slug immutable, `setProductStatus`, `saveSizes`,
   `setStock`, `removeImage`); `slug.ts` is pure slug helpers; `storage.ts` is
   the browser storage client with client-side guards (JPG/PNG/WEBP/AVIF, ≤2 MB,
-  ≤6 images); `labels.ts` holds es-ES labels and `formatDate`.
+  ≤6 images) — it reads `NEXT_PUBLIC_SUPABASE_URL`/`_ANON_KEY` with **direct
+  member access** (`process.env.NEXT_PUBLIC_…`), which Next inlines into the
+  browser bundle (a dynamic `process.env[name]` lookup would not be replaced
+  and throws at runtime in the client); `labels.ts` holds es-ES labels
+  (`SIZE_OPTIONS`, status/email labels) and `formatDate`.
 - **Availability badges**: computed in the app (`lib/catalog/availability.ts`,
   a 14-day NUEVO window, stock ≤ 3 → ÚLTIMAS, stock 0 → AGOTADO), not stored.
 - **Cart backend**: `lib/cart/cart.ts` reads/writes the session cookie
