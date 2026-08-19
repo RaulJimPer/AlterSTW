@@ -50,22 +50,37 @@ alterstw/
 │   │   │   └── productos/
 │   │   │       ├── page.tsx              # Catalog: filters + pagination
 │   │   │       └── [slug]/page.tsx       # Product detail + generateMetadata
+│   │   ├── admin/            # Private admin panel (feature 004)
+│   │   │   ├── layout.tsx    # noindex + panel background
+│   │   │   ├── login/        # /admin/login (outside the guarded group)
+│   │   │   └── (panel)/      # Guarded group: layout + pages
+│   │   │       ├── layout.tsx            # requireAdmin() + AdminShell
+│   │   │       ├── page.tsx              # /admin → redirect /admin/productos
+│   │   │       ├── productos/            # list, nuevo, [slug]/editar
+│   │   │       ├── inventario/           # stock table (inline edit)
+│   │   │       └── pedidos/              # list + [id] detail (read-only)
 │   │   ├── api/
 │   │   │   └── webhooks/
 │   │   │       └── stripe/route.ts       # Signed, idempotent payment webhook
 │   │   └── __tests__/        # page.test.tsx, sitemap.test.ts
 │   ├── components/
-│   │   └── storefront/       # Business components (+ __tests__ colocated)
-│   │       ├── header.tsx, footer.tsx    # Shell (header is client — mobile nav)
-│   │       ├── product-card.tsx, flash-sticker.tsx, stamp-badge.tsx,
-│   │       │   hanging-price-tag.tsx     # Card + availability/pricing decoration
-│   │       ├── filter-form.tsx, filter-sidebar.tsx, mobile-filter-sheet.tsx,
-│   │       │   sort-select.tsx           # Client filtering UI (client)
-│   │       ├── size-chips.tsx, add-to-cart-form.tsx   # Detail interaction (client)
-│   │       ├── cart/          # cart-context, cart-sheet, cart-lines (client)
-│   │       ├── checkout/      # clear-cart-once.tsx (client one-shot clear)
-│   │       ├── empty-state.tsx, load-more-button.tsx   # Catalog states
-│   │       └── …
+│   │   ├── storefront/       # Business components (+ __tests__ colocated)
+│   │   │   ├── header.tsx, footer.tsx    # Shell (header is client — mobile nav)
+│   │   │   ├── product-card.tsx, flash-sticker.tsx, stamp-badge.tsx,
+│   │   │   │   hanging-price-tag.tsx     # Card + availability/pricing decoration
+│   │   │   ├── filter-form.tsx, filter-sidebar.tsx, mobile-filter-sheet.tsx,
+│   │   │   │   sort-select.tsx           # Client filtering UI (client)
+│   │   │   ├── size-chips.tsx, add-to-cart-form.tsx   # Detail interaction (client)
+│   │   │   ├── cart/          # cart-context, cart-sheet, cart-lines (client)
+│   │   │   ├── checkout/      # clear-cart-once.tsx (client one-shot clear)
+│   │   │   ├── empty-state.tsx, load-more-button.tsx   # Catalog states
+│   │   │   └── …
+│   │   └── admin/            # Admin panel components (feature 004)
+│   │       ├── admin-shell.tsx, admin-nav.tsx   # Sidebar shell (server + client)
+│   │       ├── login-form.tsx                  # Client login form
+│   │       ├── product-form.tsx                # Create/edit product + images
+│   │       ├── sizes-editor.tsx, stock-table.tsx   # Sizes + inline stock
+│   │       └── product-status-action.tsx       # Publish/unpublish toggle
 │   └── lib/
 │       ├── catalog/          # Storefront domain
 │       │   ├── types.ts      # ProductSummary / ProductDetail / CatalogPage
@@ -73,6 +88,16 @@ alterstw/
 │       │   ├── availability.ts  # Badge computation (NUEVO / ÚLTIMAS / AGOTADO)
 │       │   ├── format.ts     # es-ES EUR formatting (integer cents)
 │       │   └── search-params.ts  # URL param patch/format helpers
+│       ├── auth/             # Admin auth (feature 004)
+│       │   ├── zod.ts        # loginSchema
+│       │   ├── actions.ts    # loginWithPassword, logout (server actions)
+│       │   └── guard.ts      # getAdminUser / requireAdmin
+│       ├── admin/            # Admin domain (feature 004)
+│       │   ├── types.ts, zod.ts, labels.ts   # Contracts, filters, es-ES labels
+│       │   ├── slug.ts       # slugify / makeUniqueSlug (pure)
+│       │   ├── queries.ts    # Admin reads (anon client + RLS)
+│       │   ├── actions.ts    # Admin writes (server actions, requireAdmin)
+│       │   └── storage.ts    # Browser storage client + image upload/delete
 │       ├── cart/             # Session cart domain
 │       │   ├── zod.ts        # Cookie + action input schemas and limits
 │       │   ├── types.ts      # CartLineItem / CartState / EMPTY_CART
@@ -101,7 +126,8 @@ alterstw/
 │           ├── server.ts     # Server client (anon key + RLS, cookies)
 │           └── service.ts    # Service-role client (webhook + order reads only)
 ├── supabase/
-│   └── migrations/           # 001_catalog.sql, 002_catalog_search.sql, 003_orders.sql
+│   └── migrations/           # 001_catalog.sql, 002_catalog_search.sql,
+│                             # 003_orders.sql, 004_admin.sql
 ├── .env.example              # Configuration template (copy to .env.local)
 ├── .gitignore
 ├── eslint.config.mjs
@@ -162,8 +188,21 @@ specs), `.opencode/`, `.agents/`, `opencode.json`, `skills-lock.json`,
   leaves the cart intact. Both pages are `noindex`d.
 - **SEO**: `robots.ts` and a catalog-driven `sitemap.ts`; both are static-safe
   and degrade to the base pages if Supabase is unreachable.
+- **Admin panel** (feature 004): a real `admin/` path segment (a bare route
+  group would have collapsed into `/productos` and collided with the
+  storefront). `admin/layout.tsx` sets `noindex`; `/admin/login` sits
+  **outside** the guarded `(panel)` group, whose layout calls `requireAdmin()`
+  (redirects to login without a valid session) and renders the sober
+  `AdminShell` sidebar (Productos · Inventario · Pedidos). Products, inventory
+  and orders pages are async Server Components backed by `lib/admin/queries.ts`
+  (anon client + RLS); every mutation is a server action in
+  `lib/admin/actions.ts` gated by `requireAdmin()` + Zod + `revalidatePath`.
+  Images upload straight from the browser to the public `product-images`
+  bucket through `lib/admin/storage.ts` (`createBrowserClient`).
 - **Styling**: Tailwind CSS v4 utilities in `globals.css`, following the
   design tokens in `docs/ui-ux-design.md` (paper background, ink text, stamps).
+  The admin panel uses its own sober token set (`admin-field`, `admin-btn`,
+  `admin-btn-primary` in `@layer components`).
 
 ## 3. Data layer & backend glue
 
@@ -184,10 +223,28 @@ specs), `.opencode/`, `.agents/`, `opencode.json`, `skills-lock.json`,
   the `catalog_products_v` view (and `product_sizes` for the detail) through
   the **anon** client — never the service role at runtime.
 - **Client factories** (`lib/supabase/`): `server.ts` is `@supabase/ssr`
-  `createServerClient` with cookie handling for storefront reads (anon key +
-  RLS, no app-level auth yet — feature 004); `service.ts` creates the
-  **service-role** client used exclusively by the webhook handler and order
-  reads, so the elevated key never reaches the browser.
+  `createServerClient` with cookie handling for storefront reads and for the
+  admin auth/reads (anon key + RLS); server actions **do** persist the session
+  cookies, while read-only Server Components only read them.
+  `service.ts` creates the **service-role** client used exclusively by the
+  webhook handler and order reads, so the elevated key never reaches the
+  browser.
+- **Admin auth & RLS** (feature 004): `lib/auth/` (`loginSchema` +
+  `loginWithPassword`/`logout` server actions + `getAdminUser`/`requireAdmin`)
+  authenticates with Supabase Auth (email+password, login only). Admin
+  identity is a `admin_users` table enforced by the `is_admin()` function
+  (`security definer`, `stable`) in `supabase/migrations/004_admin.sql`, which
+  also adds admin CRUD policies on the catalog, `select` policies on orders
+  (read-only panel) and the public `product-images` storage bucket with
+  admin-write policies. `admin_users` has no API write path — the owner grants
+  access via dashboard + SQL.
+- **Admin domain** (`lib/admin/`): reads via `queries.ts` (products of every
+  status, product detail + sizes, orders list/detail, flattened inventory);
+  writes via `actions.ts` (`createProduct` with unique slug + `draft`,
+  `updateProduct` — slug immutable, `setProductStatus`, `saveSizes`,
+  `setStock`, `removeImage`); `slug.ts` is pure slug helpers; `storage.ts` is
+  the browser storage client with client-side guards (JPG/PNG/WEBP/AVIF, ≤2 MB,
+  ≤6 images); `labels.ts` holds es-ES labels and `formatDate`.
 - **Availability badges**: computed in the app (`lib/catalog/availability.ts`,
   a 14-day NUEVO window, stock ≤ 3 → ÚLTIMAS, stock 0 → AGOTADO), not stored.
 - **Cart backend**: `lib/cart/cart.ts` reads/writes the session cookie

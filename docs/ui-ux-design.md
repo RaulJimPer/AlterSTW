@@ -276,6 +276,13 @@ black/white with red details.
 - Typography uses the same Space Grotesk for consistency of the house; no
   Bricolage shouting in admin.
 
+> **Implemented in feature 004**: the panel routes under `/admin` use a real
+> `admin/` path segment (a bare route group would have collapsed into the
+> storefront paths), a sober token set lives in `globals.css`
+> (`.admin-field`, `.admin-btn`, `.admin-btn-primary` on `#F5F5F4` / `#18181B` /
+> `#D4D4D8` / `#DC2626`), the sidebar renders Productos · Inventario · Pedidos,
+> and status/pricing read at a glance (pills, `tabular-nums`, es-ES dates).
+
 ---
 
 ## 8. Accessibility (WCAG 2.2 AA)

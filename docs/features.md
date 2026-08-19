@@ -61,15 +61,24 @@ The public showcase is the primary conversion surface.
 
 ## 5. Admin Panel — Inventory & Products
 
-- **Product publishing**: create, edit, publish/unpublish products.
-- **Inventory management**: stock levels per product and size/variant.
-- Restricted to authenticated owner/admin users (Supabase auth + RLS).
-- **Orders** (read-only, pending feature scope): the panel reuses the
-  `email_status` tracking persisted by feature 003 and requires admin RLS
-  policies in a **new migration** (`003_orders.sql` stays untouched).
+- **Product publishing**: create, edit, publish/unpublish products (unique
+  immutable slug auto-generated from the name, `draft` on creation, publish
+  stamps `published_at`).
+- **Inventory management**: stock levels per product and size/variant — inline
+  editing from the Inventario table or via the sizes editor on the product
+  page.
+- **Product images**: upload straight from the browser to the public
+  `product-images` bucket (JPG/PNG/WEBP/AVIF, ≤2 MB, ≤6 per product), with
+  removal cleaning the storage object.
+- **Orders** (read-only): the panel reuses the `email_status` tracking
+  persisted by feature 003 via new admin `select` policies in
+  `004_admin.sql` (`003_orders.sql` stays untouched).
+- **Auth**: Supabase Auth email+password (login only), guarded by a real
+  `admin_users` table + `is_admin()` RLS helper; every panel route under
+  `/admin` is `noindex` and the `(panel)` layout redirects to `/admin/login`
+  without a valid session.
 
-> CRUD behavior and admin authorization will be specified in
-> `spec/features/004-admin-inventory-products/`.
+> Implemented (feature 004). Spec: `spec/features/004-admin-inventory-products/`.
 
 ## 6. Analytics Dashboard
 

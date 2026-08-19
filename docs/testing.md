@@ -2,7 +2,7 @@
 
 Testing strategy, how to run the suite, and what exactly is covered.
 
-**Status:** Storefront + checkout verified. Suite: **196 Vitest tests across 36 files** +
+**Status:** Storefront + checkout + admin panel verified. Suite: **278 Vitest tests across 48 files** +
 static gates (ESLint + `tsc --noEmit`) + production build — all green.
 
 ---
@@ -49,10 +49,10 @@ npm run typecheck
 npm run build
 ```
 
-## 3. The Vitest suite (196 tests)
+## 3. The Vitest suite (278 tests)
 
-Findings from `npm test` should always end in `Test Files 36 passed (36)`
-and `Tests 196 passed (196)`.
+Findings from `npm test` should always end in `Test Files 48 passed (48)`
+and `Tests 278 passed (278)`.
 
 ### Logic layer
 
@@ -74,6 +74,13 @@ and `Tests 196 passed (196)`.
 | `src/lib/stripe/__tests__/server.test.ts` | 2 | `getStripe` singleton with `STRIPE_SECRET_KEY`; `verifyStripeWebhook` accepts a valid signature and throws on a bad signature/key. |
 | `src/lib/email/__tests__/template.test.ts` | 3 | `renderOrderConfirmation` emits es-ES house HTML (brand, reference, session link, lines, subtotal/total, catalog link) and escapes HTML-sensitive user data. |
 | `src/lib/email/__tests__/send.test.ts` | 4 | `sendOrderConfirmation`: valid payload → Resend call with `EMAIL_FROM`; provider error and thrown provider call → `{ok:false}` (never throws); invalid payload → no Resend call. |
+| `src/lib/auth/__tests__/actions.test.ts` | 6 | `loginWithPassword`: Zod trim/lowercase + redirect on success, invalid input never reaches Supabase, rejected credentials → generic `{ok:false}` without redirect; `logout` signs out and redirects. |
+| `src/lib/auth/__tests__/guard.test.ts` | 5 | `getAdminUser`/`requireAdmin`: no session, session without email, email not in `admin_users`, query error and admin present → `{id,email}`. |
+| `src/lib/admin/__tests__/slug.test.ts` | 5 | `slugify` (NFD accent strip, kebab-case, truncate, fallback) and `makeUniqueSlug` (`-2`, `-3` suffixes). |
+| `src/lib/admin/__tests__/zod.test.ts` | 6 | `parseAdminProductFilters`/`parseAdminOrderFilters` defaults, valid options, invalid fallbacks; form schemas (product, sizes, stock) bounds. |
+| `src/lib/admin/__tests__/queries.test.ts` | 14 | `getAdminProducts` mapping/filters/pagination/stockTotal, `getAdminProductBySlug` + sizes order, `getAdminOrders` filters, `getAdminOrderById` (incl. non-numeric id → null), `getInventoryRows` flattening. |
+| `src/lib/admin/__tests__/storage.test.ts` | 10 | `uploadProductImage` path/URL + type/size guards, `deleteProductImage` path guard, `storagePathFromUrl`. |
+| `src/lib/admin/__tests__/actions.test.ts` | 16 | `createProduct` (unique slug + draft), `updateProduct` (slug untouched), `setProductStatus`, `saveSizes` (replace + upsert), `setStock`, `removeImage` (storage first) — all with `requireAdmin` + Zod + `revalidatePath`. |
 
 ### App layer
 
@@ -87,6 +94,10 @@ and `Tests 196 passed (196)`.
 | `src/app/api/webhooks/stripe/__tests__/route.test.ts` | 9 | Signature failure → 400 without processing; non-completed events ignored; retrieve failure → 500; paid order records the RPC with session data and sends the email once; replay (`exists`) and `stock_failed` skip the email; email failure / missing customer email mark `email_status=failed` and still answer 200; RPC error → 500. |
 | `src/app/(storefront)/checkout/success/__tests__/page.test.tsx` | 5 | Redirects home without `session_id`; soft "confirming" state while the webhook has not landed / read fails; renders the stored order summary once confirmed (lines, totals); stock-failed notice; `ClearCartOnce` clears the cart. |
 | `src/app/(storefront)/checkout/cancel/__tests__/page.test.tsx` | 2 | Friendly cancel message, cart untouched, links kept to cart/catalog. |
+| `src/app/admin/login/__tests__/page.test.tsx` | 1 | Admin login card renders the credential fields and submit button. |
+| `src/app/admin/(panel)/productos/__tests__/page.test.tsx` | 6 | Empty state; table with status pills + inline publish buttons; filters flowing into the query + preserved search form; `Ver más`; `productListHref` keeps filters / omits defaults. |
+| `src/app/admin/(panel)/pedidos/__tests__/page.test.tsx` | 6 | Empty state; order table scoped to the table (totals, status/email pills); filters flowing into the query; `Ver más`; `orderListHref` keeps filters / omits defaults. |
+| `src/app/admin/(panel)/pedidos/[id]/__tests__/page.test.tsx` | 2 | `notFound` on an unknown order; detail renders customer, items, unit×qty lines and totals. |
 
 ### Component layer
 
@@ -104,6 +115,7 @@ and `Tests 196 passed (196)`.
 | `cart/cart-lines.test.tsx` | 6 | Steppers bounded by stock and quantity one, removal with `router.refresh()`, unavailable lines (disabled steppers, badged), and the enabled checkout CTA which opens the Stripe session URL via `createCheckoutSession` ("Abriendo pago…" pending state) and surfaces load errors inline. |
 | `empty-state.test.tsx` | 2 | `NADA POR AQUÍ` stamp with a reset link, and an honoured custom `resetHref`. |
 | `load-more-button.test.tsx` | 2 | Renders nothing without more pages, links to the next page otherwise. |
+| `admin/login-form.test.tsx` | 2 | Submits email/password to the server action and surfaces the returned es-ES error inline. |
 
 ### Seed integrity
 

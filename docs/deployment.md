@@ -56,7 +56,9 @@ The schema is managed through **SQL migrations** in `supabase/migrations/`
 (`001_catalog.sql` defines the RLS tables, `002_catalog_search.sql` the
 `catalog_products_v` view, `003_orders.sql` the orders + order_items tables,
 the `email_status`/`order_status` enums and the transactional
-`record_checkout_payment` RPC). The project has **no local Supabase CLI
+`record_checkout_payment` RPC, `004_admin.sql` the admin identity
+(`admin_users` + `is_admin()`), admin RLS policies and the public
+`product-images` storage bucket). The project has **no local Supabase CLI
 configuration** (`supabase/config.toml`); apply the SQL to your project in
 order through the Supabase **SQL editor** (migrations are recorded in
 `docs/`/`spec`, the applied state lives in the project):
@@ -66,6 +68,28 @@ order through the Supabase **SQL editor** (migrations are recorded in
 3. `003_orders.sql` — orders/order_items (service-role writes only, RLS
    forced without policies), `record_checkout_payment` RPC — the single
    transactional write path for paid / stock_failed orders.
+4. `004_admin.sql` — `admin_users` (FK `auth.users`, RLS self-read),
+   `is_admin()` (security definer, stable), admin CRUD policies on
+   `categories`/`products`/`product_sizes`, admin `select` policies on
+   `orders`/`order_items`, and the public `product-images` bucket with
+   read-public / admin-write policies on `storage.objects`.
+
+### Granting admin access (owner)
+
+The admin panel logs in with **Supabase Auth (email + password)** and checks
+identity against `admin_users` — there is **no API write path** for it:
+
+1. In the Supabase dashboard create the user: **Authentication → Users → Add
+   user** (email + password).
+2. Insert the matching row (self-read policy only):
+
+   ```sql
+   insert into admin_users (user_id)
+   values ('<user-uuid>');   -- uuid from Auth → Users
+   ```
+
+3. Optionally verify in **Storage → Buckets** that `product-images` exists and
+   is public (the migration inserts it idempotently).
 
 Migrate first, then seed the demo catalog (idempotent — upserts by `slug`):
 
@@ -113,6 +137,11 @@ The seed script is re-runnable whenever the demo data changes
   public, the storefront only reads published rows; order writes are reserved
   for the service role through the `record_checkout_payment` RPC. Do not
   disable FORCE RLS.
+- **Admin panel** : everything under `/admin` is `noindex`ed and the `(panel)`
+  group is guarded — without a valid session (Supabase Auth + a row in
+  `admin_users`) the layout redirects to `/admin/login`. Product images are
+  stored in the public `product-images` bucket; RLS authorizes only
+  `is_admin()` users to write to it, so the browser anon key is safe.
 - **Payments** : Stripe Checkout Sessions + a signed webhook
   confirm orders server-side. In dev run
   `stripe listen --forward-to http://localhost:3000/api/webhooks/stripe` and
