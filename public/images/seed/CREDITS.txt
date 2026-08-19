@@ -1,0 +1,68 @@
+ALTERSTW seed images - sources & licenses
+------------------------------------------
+
+Photos under public/free licenses, all cropped/downloaded locally. No model
+faces appear (per design rule: garments only).
+
+leather-rebel.jpg
+  Source: Unsplash - "Black leather zip-up jacket on white textile"
+  License: Unsplash License (free for commercial use, no attribution needed)
+  URL: https://unsplash.com/photos/black-leather-zip-up-jacket-on-white-textile-nsRBbE6-YLs
+
+stud-destroyer.jpg
+  Source: Wikimedia Commons - "DIY punk jackets - Germany 2012"
+          by Metropolico.org (via Flickr)
+  License: CC BY-SA 2.0 (attribution + share-alike)
+  URL: https://commons.wikimedia.org/wiki/File:DIY_punk_jackets_-_Germany_2012.jpg
+
+after-dark-hoodie.jpg
+  Source: Unsplash - "A black hoodie that says I'll see you tomorrow"
+  License: Unsplash License
+  URL: https://unsplash.com/photos/a-black-hoodie-that-says-ill-see-you-tomorrow-on-it-SXpun7pdECU
+
+denim-ghost.jpg
+  Source: Wikimedia Commons - "2002 Junya Watanabe for Comme des Garcons
+          jacket, blue denim jeans patchwork", RISD Museum staff photo
+  License: CC0 1.0 (public domain, no conditions)
+  URL: https://commons.wikimedia.org/wiki/File:2002_Junya_Watanabe_for_Comme_des_Gar%C3%A7ons_jacket,_blue_denim_jeans_patchwork_04.jpg
+
+Pexels photos (Pexels License - free for commercial and personal use, no
+attribution required). All garment-only or face-free shots, matching the
+storefront "garments only" design rule:
+
+skull-crush.jpg
+  Pexels - "Back view of a young man in a modern black t-shirt" by Teddy Yang
+  URL: https://www.pexels.com/photo/back-view-of-a-young-man-in-a-modern-black-t-shirt-16131087/
+
+pinstripe-riot.jpg
+  Pexels - "Woman wearing white and black striped crew-neck t-shirt"
+  by Joao Paulo de Souza Oliveira
+  URL: https://www.pexels.com/photo/woman-wearing-white-and-black-striped-crew-neck-t-shirt-2876793/
+
+faded-89.jpg
+  Pexels - "Wet t-shirts drying" by Maria Luiza Melo (vintage prints)
+  URL: https://www.pexels.com/photo/wet-t-shirts-drying-10990006/
+
+graff-cap.jpg
+  Pexels - "A black Nike Air Jordan snapback" by Nathan J Hilton
+  URL: https://www.pexels.com/photo/a-black-nike-air-jordan-snapback-5343088/
+
+cargo-unit.jpg
+  Pexels - "Fashionable streetwear with black cargo pants and chain"
+  URL: https://www.pexels.com/photo/fashionable-streetwear-with-black-cargo-pants-and-chain-35043249/
+
+bomber-night.jpg
+  Pexels - "Flat lay of jackets on brown wooden floor" (bomber jacket)
+  URL: https://www.pexels.com/photo/flat-lay-of-jackets-on-brown-wooden-floor-3998647/
+
+flannel-97.jpg
+  Pexels - "Back view close-up portrait photo of man in red plaid shirt"
+  URL: https://www.pexels.com/photo/back-view-close-up-portrait-photo-of-man-in-red-plaid-shirt-2445984/
+
+velvet-rider.jpg
+  Pexels - "Casual outdoor fashion with maroon pants and black boots"
+  URL: https://www.pexels.com/photo/casual-outdoor-fashion-with-maroon-pants-and-black-boots-30486965/
+
+All *.svg files in this folder: fallback.svg is an original in-house
+placeholder - the app's "prenda no disponible" icon used when a product has no
+images. It is NOT product data.

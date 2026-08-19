@@ -8,22 +8,27 @@ vi.mock("next/image", () => ({
   ),
 }));
 
-import Home from "@/app/page";
+vi.mock("@/lib/catalog/queries", () => ({
+  getCategories: vi.fn(async () => [
+    { id: "1", slug: "punk", name: "Punk", sortOrder: 0 },
+  ]),
+  getPublishedProducts: vi.fn(async () => ({
+    items: [],
+    page: 1,
+    pageSize: 24,
+    total: 0,
+    hasMore: false,
+  })),
+}));
 
-describe("Home", () => {
-  it("renders the main heading with the getting-started copy", () => {
-    render(<Home />);
+import HomePage from "@/app/(storefront)/page";
+
+describe("Home (storefront)", () => {
+  it("renders the brand hero heading", async () => {
+    const element = await HomePage();
+    render(element);
     expect(
-      screen.getByRole("heading", {
-        level: 1,
-        name: /to get started, edit the page\.tsx file/i,
-      }),
+      screen.getByRole("heading", { level: 1, name: /diferente/i }),
     ).toBeInTheDocument();
-  });
-
-  it("renders at least one action link", () => {
-    render(<Home />);
-    const links = screen.getAllByRole("link");
-    expect(links.length).toBeGreaterThan(0);
   });
 });

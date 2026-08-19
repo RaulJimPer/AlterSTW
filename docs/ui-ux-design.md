@@ -211,6 +211,13 @@ links; the whole frame is clickable with a visible focus outline.
 - **Desktop:** sticky left sidebar — Categoría, Talla, Precio (range), Estado
   (Disponible / Ocasión). Active filter = red stamped label + removable chip.
   Buttons: *Aplicar* (primary red) and *Limpiar* (text).
+- **Filter groups are collapsible accordions** (APG disclosure pattern): each
+  group header is a button with a rotating chevron (`aria-expanded` +
+  `aria-controls`), all groups start **collapsed**, opening one never closes
+  the others, and *Limpiar* collapses every group while navigating back to the
+  clean catalog. Active-filter chips stay visible above the collapsed groups.
+  The sidebar keeps its sticky top position but the page itself scrolls (no
+  inner sidebar scrollbar).
 - **Mobile:** filters open in a bottom **sheet** (full-height, scrolled), with
   a sticky *Aplicar* primary button at the bottom.
 - **Sort:** small dropdown (“Más reciente · Precio ↑ · Precio ↓”).
@@ -238,7 +245,7 @@ links; the whole frame is clickable with a visible focus outline.
 - Cart opens as a right-side sheet: line rows (thumb + name + size + hanging
   price per line), quantity steppers (2px), subtotal block, primary checkout
   CTA. Empty cart shows a purple stamp “NADA POR AQUÍ” + CTA to the catalog.
-- Checkout delegates to **Stripe Checkout** (feature 003); local surfaces stay
+- Checkout delegates to **Stripe Checkout** ; local surfaces stay
   minimal paper blocks. Success/cancel pages: simple, branded small stamps,
   no spam.
 
@@ -268,6 +275,20 @@ black/white with red details.
   Ajustes) + content column; dense but breathable tables (6–8px rows).
 - Typography uses the same Space Grotesk for consistency of the house; no
   Bricolage shouting in admin.
+
+> **Implemented in feature 004**: the panel routes under `/admin` use a real
+> `admin/` path segment (a bare route group would have collapsed into the
+> storefront paths), a sober token set lives in `globals.css`
+> (`.admin-field`, `.admin-btn`, `.admin-btn-primary` on `#F5F5F4` / `#18181B` /
+> `#D4D4D8` / `#DC2626`), the sidebar renders Productos · Inventario · Pedidos,
+> and status/pricing read at a glance (pills, `tabular-nums`, es-ES dates).
+
+> **Post-review refinements**: the logout button moved from the sidebar bottom
+> to a top-right header next to the admin email; filters expose a single
+> "Limpiar filtros" reset; the sizes editor uses a dropdown of common sizes
+> with an "Otra talla…" free-text fallback; the login card links back to the
+> storefront below it. Product images are served through `next/image` with
+> `images.remotePatterns` allowing the Supabase storage host.
 
 ---
 
