@@ -2,6 +2,8 @@ import { z } from "zod";
 import type { EmailStatus, OrderStatus } from "@/lib/orders/types";
 
 export const ADMIN_PAGE_SIZE = 20;
+export const MAX_PRODUCT_IMAGES = 6;
+export const MAX_SIZES = 20;
 
 const optionalText = z.string().trim().min(1);
 const pageSchema = z.coerce.number().int().min(1);
@@ -68,3 +70,29 @@ export function parseAdminOrderFilters(raw: SearchParamsRaw): AdminOrderFilters 
     page: parsePage(raw),
   };
 }
+
+export const productFormSchema = z.object({
+  name: z.string().trim().min(1).max(120),
+  description: z.string().trim().max(4000),
+  priceCents: z.coerce.number().int().nonnegative(),
+  categoryId: z.coerce.number().int().positive(),
+  images: z.array(z.string().trim().min(1)).max(MAX_PRODUCT_IMAGES),
+});
+export type ProductFormInput = z.infer<typeof productFormSchema>;
+
+export const sizeRowSchema = z.object({
+  size: z.string().trim().min(1).max(8),
+  stock: z.coerce.number().int().min(0).max(9999),
+  sortOrder: z.coerce.number().int().min(0),
+});
+export type SizeRowInput = z.infer<typeof sizeRowSchema>;
+
+export const sizesFormSchema = z.array(sizeRowSchema).max(MAX_SIZES);
+export type SizesFormInput = z.infer<typeof sizesFormSchema>;
+
+export const stockUpdateSchema = z.object({
+  productId: z.coerce.number().int().positive(),
+  size: z.string().trim().min(1).max(8),
+  stock: z.coerce.number().int().min(0).max(9999),
+});
+export type StockUpdateInput = z.infer<typeof stockUpdateSchema>;

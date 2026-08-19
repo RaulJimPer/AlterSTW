@@ -1,7 +1,6 @@
 import { createBrowserClient } from "@supabase/ssr";
 
 export const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
-export const MAX_PRODUCT_IMAGES = 6;
 const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/avif"];
 
 export type ImageUploadResult =
