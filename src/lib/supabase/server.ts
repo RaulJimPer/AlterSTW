@@ -26,8 +26,9 @@ export async function createClient() {
               cookieStore.set(name, value, options),
             );
           } catch {
-            // Called from a Server Component where cookies are read-only; no
-            // session cookies are expected until auth lands in feature 004.
+            // Called from a Server Component where cookies are read-only.
+            // Server actions (auth login/logout) can write cookies, so the
+            // session is persisted there.
           }
         },
       },
