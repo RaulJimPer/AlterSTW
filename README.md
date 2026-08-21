@@ -19,8 +19,11 @@ admin panel with an analytics dashboard for the owner.
   best-effort and tracked in the order record.
 - **Admin panel** — private product publishing, inventory and read-only
   order history for the owner (Supabase Auth + `admin_users` RLS).
-- **Analytics dashboard** *(planned)* — sales, visits and conversion-rate
-  metrics with Recharts.
+- **Analytics dashboard (Estadísticas)** — private, read-only dashboard under
+  `/admin/analytics` with KPI cards (revenue, paid orders, conversion, AOV),
+  Recharts charts (sales, visits/conversion, top products, revenue by category),
+  a critical-stock table and a Zod-validated range selector (7d/30d/90d/Todo +
+  custom). Storefront visits are captured fire-and-forget.
 - **Security by default** — Supabase Row Level Security, strict TypeScript,
   Zod input validation, and npm 12 supply-chain hardening.
 
@@ -42,6 +45,7 @@ copy .env.example .env.local   # fill in Supabase / Stripe / Resend keys
 #    supabase/migrations/002_catalog_search.sql
 #    supabase/migrations/003_orders.sql
 #    supabase/migrations/004_admin.sql
+#    supabase/migrations/005_analytics.sql
 
 # 4. Seed demo catalog (idempotent)
 npm run seed
@@ -62,7 +66,7 @@ Then open <http://localhost:3000>. Pay with Stripe test card `4242 4242 4242
 | [Features](docs/features.md) | Storefront, cart, checkout, admin panel, analytics dashboard and future extensions |
 | [Tech Stack](docs/tech-stack.md) | Every technology, version, and the rationale behind it |
 | [Architecture](docs/architecture.md) | Repository layout as it exists in git, RSC-first frontend and data-layer glue |
-| [Testing](docs/testing.md) | Testing strategy, how to run the suite and the coverage of all 284 tests across 49 files |
+| [Testing](docs/testing.md) | Testing strategy, how to run the suite and the coverage of all 310 tests across 54 files |
 | [Deployment](docs/deployment.md) | Install, configure, migrate, seed, run and production notes |
 | [Demo seed catalog](docs/seed-catalog.md) | Source of truth for the 12 demo products written by `npm run seed` |
 | [UI/UX design](docs/ui-ux-design.md) | Visual identity, accessibility and responsive rules |
@@ -107,4 +111,7 @@ npm run build
 > **In development.** The storefront is fully functional end-to-end: catalog,
 > cart and checkout with Stripe payments and confirmation emails. The admin panel
 > is complete and QA-verified by the owner (migration applied, admin
-> account granted). The analytics dashboard is next on the roadmap; features and behavior may still change.
+> account granted). The analytics dashboard (Estadísticas) is implemented —
+> route `/admin/analytics`, KPI cards, Recharts charts, critical-stock table and
+> range selector — with its migration `005_analytics.sql` and manual QA still
+> pending on the owner's side.

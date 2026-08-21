@@ -271,7 +271,7 @@ black/white with red details.
   blue/teal/orange/purple/amber) so metrics are told apart at a glance;
   `red` reserved for alerts/declines. Gridlines subtle; numbers use tabular
   figures; labels in Space Grotesk, small.
-- **Layout:** fixed sidebar nav (Productos, Inventario, Pedidos, Analítica,
+- **Layout:** fixed sidebar nav (Productos, Inventario, Pedidos, Estadísticas,
   Ajustes) + content column; dense but breathable tables (6–8px rows).
 - Typography uses the same Space Grotesk for consistency of the house; no
   Bricolage shouting in admin.
@@ -289,6 +289,13 @@ black/white with red details.
 > with an "Otra talla…" free-text fallback; the login card links back to the
 > storefront below it. Product images are served through `next/image` with
 > `images.remotePatterns` allowing the Supabase storage host.
+
+> **Implemented in feature 005**: the sidebar gains a 4th entry **Estadísticas**
+> (`/admin/analytics`) with KPI cards and four Recharts charts (sales
+> ComposedChart, visits/conversion, top products, category donut) plus a
+> critical-stock table, all in the sober palette above (blue/teal/orange/purple/
+> amber; `red` reserved for alerts). The range selector (pills + custom dates)
+> keeps the chosen range in the URL via Zod-validated `searchParams`.
 
 ---
 

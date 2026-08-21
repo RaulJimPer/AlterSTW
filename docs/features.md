@@ -80,14 +80,27 @@ The public showcase is the primary conversion surface.
 
 > Implemented (feature 004). Spec: `spec/features/004-admin-inventory-products/`.
 
-## 6. Analytics Dashboard
+## 6. Analytics Dashboard (Estadísticas)
 
-- **Sales metrics**: revenue, order counts over time.
-- **Visits and conversion rates**: how visitors become customers.
-- Charts built with **Recharts**, rendered in the private admin area.
+A private, read-only dashboard under `/admin/analytics` (4th sidebar entry in
+the admin panel) that turns captured storefront data into the business metrics
+the mission calls for: how much the shop sells, what sells, and how visitors
+convert.
 
-> Metrics definitions and queries will be specified in
-> `spec/features/005-analytics-dashboard/`.
+- **KPI cards** (range-scoped): revenue (`orders.total_cents` where
+  `status = 'paid'`), paid orders, average order value, global conversion
+  (`paid orders / page views`), and a paid vs `stock_failed` breakdown.
+- **Charts (Recharts)**: sales over time (revenue line + orders bars), visits
+  and conversion over time, top products (qty + revenue), and revenue by
+  category (donut). Day granularity for ≤30d ranges, weekly for longer ones;
+  empty states avoid broken charts.
+- **Stock crítico**: sober table of sizes with stock ≤ 3, linking to inventory.
+- **Range selector**: `7d / 30d / 90d / Todo` pills plus a custom `desde/hasta`
+  range, validated with Zod and preserved in the URL (default `30d`).
+- **Visits**: a fire-and-forget `page_visits` writer in the storefront records
+  every hit (no PII, no external tracker), gated by `is_admin()` for admin reads.
+
+> Implemented (feature 005). Spec: `spec/features/005-analytics-dashboard/`.
 
 ## 7. Future extensions
 
