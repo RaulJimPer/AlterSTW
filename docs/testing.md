@@ -2,7 +2,7 @@
 
 Testing strategy, how to run the suite, and what exactly is covered.
 
-**Status:** Storefront + checkout + admin panel verified. Suite: **284 Vitest tests across 49 files** +
+**Status:** Storefront + checkout + admin panel + Estadísticas dashboard verified. Suite: **310 Vitest tests across 54 files** +
 static gates (ESLint + `tsc --noEmit`) + production build — all green.
 
 ---
@@ -49,10 +49,10 @@ npm run typecheck
 npm run build
 ```
 
-## 3. The Vitest suite (284 tests)
+## 3. The Vitest suite (310 tests)
 
-Findings from `npm test` should always end in `Test Files 49 passed (49)`
-and `Tests 284 passed (284)`.
+Findings from `npm test` should always end in `Test Files 54 passed (54)`
+and `Tests 310 passed (310)`.
 
 ### Logic layer
 
@@ -79,6 +79,9 @@ and `Tests 284 passed (284)`.
 | `src/lib/admin/__tests__/slug.test.ts` | 5 | `slugify` (NFD accent strip, kebab-case, truncate, fallback) and `makeUniqueSlug` (`-2`, `-3` suffixes). |
 | `src/lib/admin/__tests__/zod.test.ts` | 6 | `parseAdminProductFilters`/`parseAdminOrderFilters` defaults, valid options, invalid fallbacks; form schemas (product, sizes, stock) bounds. |
 | `src/lib/admin/__tests__/queries.test.ts` | 14 | `getAdminProducts` mapping/filters/pagination/stockTotal, `getAdminProductBySlug` + sizes order, `getAdminOrders` filters, `getAdminOrderById` (incl. non-numeric id → null), `getInventoryRows` flattening. |
+| `src/lib/analytics/__tests__/zod.test.ts` | 11 | `parseAnalyticsRange`/`toDateRange`: pill defaults (7d/30d/90d), `all` without lower bound, custom valid/invalid (unordered/missing dates → 30d fallback), granularity day (≤30d) / week (>30d), unknown keys ignored. |
+| `src/lib/analytics/__tests__/queries.test.ts` | 9 | `getAnalyticsKpis` (zeros / sums / AOV / conversion), `getSalesSeries` (day gaps filled, weekly aggregation, `all` via minDay), `getTopProducts` (revenue rank, limit), `getSalesByCategory`, `getCriticalStock` (≤3). |
+| `src/lib/analytics/__tests__/track.test.ts` | 3 | `trackPageVisitAction` inserts a valid path, ignores invalid paths, swallows insert errors (fire-and-forget). |
 | `src/lib/admin/__tests__/storage.test.ts` | 10 | `uploadProductImage` path/URL + type/size guards, `deleteProductImage` path guard, `storagePathFromUrl`. |
 | `src/lib/admin/__tests__/actions.test.ts` | 17 | `createProduct` (unique slug + draft), `updateProduct` (slug untouched), `setProductStatus`, `saveSizes` (replace + upsert, long custom sizes), `setStock`, `removeImage` (storage first) — all with `requireAdmin` + Zod + `revalidatePath`. |
 
@@ -98,6 +101,7 @@ and `Tests 284 passed (284)`.
 | `src/app/admin/(panel)/productos/__tests__/page.test.tsx` | 8 | Empty state; table with status pills + inline publish buttons; filters flowing into the query + preserved search form; `Ver más`; reset-filters link only when a filter is active; `productListHref` keeps filters / omits defaults. |
 | `src/app/admin/(panel)/pedidos/__tests__/page.test.tsx` | 8 | Empty state; order table scoped to the table (totals, status/email pills); filters flowing into the query; `Ver más`; reset-filters link only when a filter is active; `orderListHref` keeps filters / omits defaults. |
 | `src/app/admin/(panel)/pedidos/[id]/__tests__/page.test.tsx` | 2 | `notFound` on an unknown order; detail renders customer, items, unit×qty lines and totals. |
+| `src/app/admin/(panel)/analytics/__tests__/page.test.tsx` | 3 | Estadísticas page renders KPIs for a populated range, empty state when no orders/visits, and never renders `NaN` in conversion. |
 
 ### Component layer
 
@@ -117,6 +121,7 @@ and `Tests 284 passed (284)`.
 | `load-more-button.test.tsx` | 2 | Renders nothing without more pages, links to the next page otherwise. |
 | `admin/login-form.test.tsx` | 2 | Submits email/password to the server action and surfaces the returned es-ES error inline. |
 | `admin/admin-shell.test.tsx` | 1 | Renders the sidebar nav, the admin email and the top-right logout button around the page content. |
+| `admin/analytics/__tests__/range-selector.test.tsx` | 2 | Preset click pushes `range=…` without custom dates; custom range preserves other search params. |
 
 ### Seed integrity
 

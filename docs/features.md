@@ -27,8 +27,10 @@ The public showcase is the primary conversion surface.
 - Product detail views with the information a shopper needs to decide (price,
   description, images, availability).
 
-> Details of the catalog feature (fields, filters, UI) will be specified in
-> `spec/features/001-product-catalog/` before implementation.
+> The catalog exposes the fields and filters described above (category, size,
+> price range, availability) and renders each product with price, description,
+> images and availability; the product model is defined here rather than in a
+> separate spec.
 
 ## 3. Shopping Cart
 
@@ -36,8 +38,9 @@ The public showcase is the primary conversion surface.
 - Cart state persists across the customer session.
 - Clear entry into checkout.
 
-> Session persistence mechanics and data model will be defined in
-> `spec/features/002-shopping-cart/`.
+> The cart persists in a session cookie that the server re-validates against
+> live prices and per-size stock on every read, degrading to an empty cart if
+> the database is unreachable.
 
 ## 4. Checkout & Payments (Stripe)
 
@@ -71,35 +74,51 @@ The public showcase is the primary conversion surface.
   `product-images` bucket (JPG/PNG/WEBP/AVIF, ≤2 MB, ≤6 per product), with
   removal cleaning the storage object.
 - **Orders** (read-only): the panel reuses the `email_status` tracking
-  persisted by feature 003 via new admin `select` policies in
-  `004_admin.sql` (`003_orders.sql` stays untouched).
+  persisted by the checkout & payments layer through the admin `select`
+  policies added in the admin migration (`004_admin.sql`); the orders schema
+  (`003_orders.sql`) stays untouched.
 - **Auth**: Supabase Auth email+password (login only), guarded by a real
   `admin_users` table + `is_admin()` RLS helper; every panel route under
   `/admin` is `noindex` and the `(panel)` layout redirects to `/admin/login`
   without a valid session.
 
-> Implemented (feature 004). Spec: `spec/features/004-admin-inventory-products/`.
+> Implemented (admin panel — inventory & products).
 
-## 6. Analytics Dashboard
+## 6. Analytics Dashboard (Estadísticas)
 
-- **Sales metrics**: revenue, order counts over time.
-- **Visits and conversion rates**: how visitors become customers.
-- Charts built with **Recharts**, rendered in the private admin area.
+A private, read-only dashboard under `/admin/analytics` (4th sidebar entry in
+the admin panel) that turns captured storefront data into the business metrics
+the mission calls for: how much the shop sells, what sells, and how visitors
+convert.
 
-> Metrics definitions and queries will be specified in
-> `spec/features/005-analytics-dashboard/`.
+- **KPI cards** (range-scoped): revenue (`orders.total_cents` where
+  `status = 'paid'`), paid orders, average order value, global conversion
+  (`paid orders / page views`), and a paid vs `stock_failed` breakdown.
+- **Charts (Recharts)**: sales over time (revenue line + orders bars), visits
+  and conversion over time, top products (qty + revenue), and revenue by
+  category (donut). Day granularity for ≤30d ranges, weekly for longer ones;
+  empty states avoid broken charts.
+- **Stock crítico**: sober table of sizes with stock ≤ 3, linking to inventory.
+- **Range selector**: `7d / 30d / 90d / Todo` pills plus a custom `desde/hasta`
+  range, validated with Zod and preserved in the URL (default `30d`).
+- **Visits**: a fire-and-forget `page_visits` writer in the storefront records
+  every hit (no PII, no external tracker), gated by `is_admin()` for admin reads.
+
+> Implemented (analytics dashboard).
 
 ## 7. Future extensions
 
-- **Shipping** (extension of 003) — shipping rate options and an address at
-  checkout (deferred; reuses the 003 pages/orders pipeline).
+- **Shipping** — shipping rate options and an address at checkout (deferred;
+  reuses the checkout & payments pages and orders pipeline).
 - **Abandoned-cart recovery** — automated emails to recover lost carts
-  (reuses the `src/lib/email/` API shipped with 003).
+  (reuses the `src/lib/email/` API shipped with the checkout & payments
+  feature).
 - **Discount coupons** — coupon creation and application at checkout.
 - **Recommendation engine** — complementary product suggestions.
 
 ## 8. Open items
 
-- The **data model** (Products, Cart, Orders, Inventory, Coupons) is not
-  defined at the global level on purpose: fields, types and relationships
-  will be defined per feature inside the SDD specs, starting with the catalog.
+- The **data model** (Products, Cart, Orders, Inventory) is defined per
+  functional area: the catalog schema, the checkout/orders model and the admin
+  inventory model are described in their respective sections above. Coupons are
+  a future extension not yet modelled.

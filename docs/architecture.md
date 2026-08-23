@@ -39,7 +39,7 @@ alterstw/
 │   │   ├── sitemap.ts        # sitemap.xml (catalog-driven, degrades gracefully)
 │   │   ├── error.tsx         # Root error boundary (client)
 │   │   ├── (storefront)/     # Route group: public shop
-│   │   │   ├── layout.tsx    # Reads session cart → CartState, CartProvider
+│   │   │   ├── layout.tsx    # Reads session cart → CartState, CartProvider; mounts PageVisitTracker (fire-and-forget visit writer)
 │   │   │   ├── page.tsx      # Home (hero / landing)
 │   │   │   ├── error.tsx     # Storefront error boundary (client)
 │   │   │   ├── not-found.tsx
@@ -58,7 +58,8 @@ alterstw/
 │   │   │       ├── page.tsx              # /admin → redirect /admin/productos
 │   │   │       ├── productos/            # list, nuevo, [slug]/editar
 │   │   │       ├── inventario/           # stock table (inline edit)
-│   │   │       └── pedidos/              # list + [id] detail (read-only)
+│   │   │       ├── pedidos/              # list + [id] detail (read-only)
+│   │   │       └── analytics/            # /admin/analytics — Estadísticas (read-only dashboard)
 │   │   ├── api/
 │   │   │   └── webhooks/
 │   │   │       └── stripe/route.ts       # Signed, idempotent payment webhook
@@ -80,7 +81,8 @@ alterstw/
 │   │       ├── login-form.tsx                  # Client login form
 │   │       ├── product-form.tsx                # Create/edit product + images
 │   │       ├── sizes-editor.tsx, stock-table.tsx   # Sizes + inline stock
-│   │       └── product-status-action.tsx       # Publish/unpublish toggle
+│   │       ├── product-status-action.tsx       # Publish/unpublish toggle
+│   │       └── analytics/   # Estadísticas dashboard (client charts + RangeSelector; server CriticalStockTable) + PageVisitTracker (storefront writer)
 │   └── lib/
 │       ├── catalog/          # Storefront domain
 │       │   ├── types.ts      # ProductSummary / ProductDetail / CatalogPage
@@ -98,6 +100,11 @@ alterstw/
 │       │   ├── queries.ts    # Admin reads (anon client + RLS)
 │       │   ├── actions.ts    # Admin writes (server actions, requireAdmin)
 │       │   └── storage.ts    # Browser storage client + image upload/delete
+│       ├── analytics/        # Analytics dashboard domain
+│       │   ├── types.ts      # AnalyticsRange / Kpis / SeriesPoint / TopProduct / CategorySales
+│       │   ├── zod.ts        # parseAnalyticsRange / toDateRange (pills + custom, ≥30d → week)
+│       │   ├── queries.ts    # KPIs, sales series, top products, sales-by-category, critical stock
+│       │   └── track.ts      # trackPageVisitAction (server action, fire-and-forget page views)
 │       ├── cart/             # Session cart domain
 │       │   ├── zod.ts        # Cookie + action input schemas and limits
 │       │   ├── types.ts      # CartLineItem / CartState / EMPTY_CART
@@ -126,8 +133,8 @@ alterstw/
 │           ├── server.ts     # Server client (anon key + RLS, cookies)
 │           └── service.ts    # Service-role client (webhook + order reads only)
 ├── supabase/
-│   └── migrations/           # 001_catalog.sql, 002_catalog_search.sql,
-│                             # 003_orders.sql, 004_admin.sql
+│   └── migrations/           # 001_catalog.sql … 004_admin.sql,
+│                             # 005_analytics.sql (page_visits + security_invoker views)
 ├── .env.example              # Configuration template (copy to .env.local)
 ├── .gitignore
 ├── eslint.config.mjs
@@ -142,9 +149,7 @@ alterstw/
 ```
 
 Local-only, **gitignored** artifacts (present on a dev machine, never in git):
-`dev-docs/` (session progress + drafts), `spec/` (SDD constitution and feature
-specs), `.opencode/`, `.agents/`, `opencode.json`, `skills-lock.json`,
-`AGENTS.md`, `.env.local`, and build artifacts (`next-env.d.ts`,
+`.env.local` (configuration with secrets) and build artifacts (`next-env.d.ts`,
 `*.tsbuildinfo`).
 
 ## 2. Frontend architecture (RSC-first)
@@ -193,7 +198,11 @@ specs), `.opencode/`, `.agents/`, `opencode.json`, `skills-lock.json`,
   storefront). `admin/layout.tsx` sets `noindex`; `/admin/login` sits
   **outside** the guarded `(panel)` group, whose layout calls `requireAdmin()`
   (redirects to login without a valid session) and renders the sober
-  `AdminShell` sidebar (Productos · Inventario · Pedidos). Products, inventory
+  `AdminShell` sidebar (Productos · Inventario · Pedidos · Estadísticas). The
+  read-only **Estadísticas** dashboard (`/admin/analytics`) adds KPI cards and
+  Recharts charts (sales, visits/conversion, top products, sales-by-category)
+  plus a critical-stock table, all scoped to a Zod-validated range selector
+  (7d/30d/90d/Todo + custom). Products, inventory
   and orders pages are async Server Components backed by `lib/admin/queries.ts`
   (anon client + RLS); every mutation is a server action in
   `lib/admin/actions.ts` gated by `requireAdmin()` + Zod + `revalidatePath`.
@@ -249,6 +258,15 @@ specs), `.opencode/`, `.agents/`, `opencode.json`, `skills-lock.json`,
   browser bundle (a dynamic `process.env[name]` lookup would not be replaced
   and throws at runtime in the client); `labels.ts` holds es-ES labels
   (`SIZE_OPTIONS`, status/email labels) and `formatDate`.
+- **Analytics dashboard**: `supabase/migrations/005_analytics.sql` adds
+  `page_visits` (fire-and-forget storefront counter: anon insert + admin-only
+  `select` via `is_admin()`) and four `security_invoker` views
+  (`sales_daily_v`, `visits_daily_v`, `top_products_v`, `sales_by_category_v`)
+  that delegate to the base tables' RLS. `lib/analytics/queries.ts` reads them
+  through the **anon** client (never the service role) and reuses
+  `getInventoryRows` for critical stock; `track.ts` exposes
+  `trackPageVisitAction`, a server action invoked `fire-and-forget` from a
+  `PageVisitTracker` client component mounted in the storefront layout.
 - **Availability badges**: computed in the app (`lib/catalog/availability.ts`,
   a 14-day NUEVO window, stock ≤ 3 → ÚLTIMAS, stock 0 → AGOTADO), not stored.
 - **Cart backend**: `lib/cart/cart.ts` reads/writes the session cookie

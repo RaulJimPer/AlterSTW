@@ -7,6 +7,7 @@ admin panel with an analytics dashboard for the owner.
 
 > **Documentation is organized in [`docs/`](docs/)** — this README is the entry
 > point; each topic has a dedicated page with full detail.
+> **License:** Released under the MIT License — see [LICENSE](LICENSE).
 
 ## Highlights
 
@@ -19,8 +20,11 @@ admin panel with an analytics dashboard for the owner.
   best-effort and tracked in the order record.
 - **Admin panel** — private product publishing, inventory and read-only
   order history for the owner (Supabase Auth + `admin_users` RLS).
-- **Analytics dashboard** *(planned)* — sales, visits and conversion-rate
-  metrics with Recharts.
+- **Analytics dashboard (Estadísticas)** — private, read-only dashboard under
+  `/admin/analytics` with KPI cards (revenue, paid orders, conversion, AOV),
+  Recharts charts (sales, visits/conversion, top products, revenue by category),
+  a critical-stock table and a Zod-validated range selector (7d/30d/90d/Todo +
+  custom). Storefront visits are captured fire-and-forget.
 - **Security by default** — Supabase Row Level Security, strict TypeScript,
   Zod input validation, and npm 12 supply-chain hardening.
 
@@ -42,6 +46,7 @@ copy .env.example .env.local   # fill in Supabase / Stripe / Resend keys
 #    supabase/migrations/002_catalog_search.sql
 #    supabase/migrations/003_orders.sql
 #    supabase/migrations/004_admin.sql
+#    supabase/migrations/005_analytics.sql
 
 # 4. Seed demo catalog (idempotent)
 npm run seed
@@ -62,7 +67,7 @@ Then open <http://localhost:3000>. Pay with Stripe test card `4242 4242 4242
 | [Features](docs/features.md) | Storefront, cart, checkout, admin panel, analytics dashboard and future extensions |
 | [Tech Stack](docs/tech-stack.md) | Every technology, version, and the rationale behind it |
 | [Architecture](docs/architecture.md) | Repository layout as it exists in git, RSC-first frontend and data-layer glue |
-| [Testing](docs/testing.md) | Testing strategy, how to run the suite and the coverage of all 284 tests across 49 files |
+| [Testing](docs/testing.md) | Testing strategy, how to run the suite and the coverage of all 310 tests across 54 files |
 | [Deployment](docs/deployment.md) | Install, configure, migrate, seed, run and production notes |
 | [Demo seed catalog](docs/seed-catalog.md) | Source of truth for the 12 demo products written by `npm run seed` |
 | [UI/UX design](docs/ui-ux-design.md) | Visual identity, accessibility and responsive rules |
@@ -96,15 +101,24 @@ npm run build
 
 - `src/` — application code (Next.js App Router)
 - `docs/` — visible documentation (English, committed)
-- `spec/` — SDD constitution and feature specs (local-only, not committed)
-- `dev-docs/` — internal drafts and daily progress (local-only, not
-  committed)
-- `.opencode/`, `.agents/` — local OpenCode configuration and skills (not
-  committed)
+- `public/` — static assets (seed images, favicon)
+- `scripts/` — maintenance scripts (e.g. the demo catalog seed)
+- `supabase/migrations/` — SQL schema migrations
+- Configuration lives in `.env.example` (committed) and `.env.local`
+  (gitignored, local-only).
 
 ## Status
 
-> **In development.** The storefront is fully functional end-to-end: catalog,
-> cart and checkout with Stripe payments and confirmation emails. The admin panel
-> is complete and QA-verified by the owner (migration applied, admin
-> account granted). The analytics dashboard is next on the roadmap; features and behavior may still change.
+**In development.** AlterSTW already ships the core storefront and back office:
+
+- **Storefront** — product catalog with filtering, product detail, cart and
+  secure Stripe checkout with confirmation emails.
+- **Admin panel** — product publishing, inventory and read-only order history
+  for the owner, plus the **Estadísticas** analytics dashboard (KPI cards,
+  Recharts charts, critical-stock table, range selector).
+
+The test suite (310 Vitest tests), ESLint, `tsc --noEmit` and the production
+build are green; manual QA of the admin and analytics flows on the owner's
+environment is still pending. The architecture is open to future extensions —
+shipping, abandoned-cart recovery, discount coupons and a recommendation engine
+are scoped as next steps.
