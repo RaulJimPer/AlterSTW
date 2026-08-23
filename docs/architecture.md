@@ -100,7 +100,7 @@ alterstw/
 │       │   ├── queries.ts    # Admin reads (anon client + RLS)
 │       │   ├── actions.ts    # Admin writes (server actions, requireAdmin)
 │       │   └── storage.ts    # Browser storage client + image upload/delete
-│       ├── analytics/        # Analytics dashboard domain (feature 005)
+│       ├── analytics/        # Analytics dashboard domain
 │       │   ├── types.ts      # AnalyticsRange / Kpis / SeriesPoint / TopProduct / CategorySales
 │       │   ├── zod.ts        # parseAnalyticsRange / toDateRange (pills + custom, ≥30d → week)
 │       │   ├── queries.ts    # KPIs, sales series, top products, sales-by-category, critical stock
@@ -149,9 +149,7 @@ alterstw/
 ```
 
 Local-only, **gitignored** artifacts (present on a dev machine, never in git):
-`dev-docs/` (session progress + drafts), `spec/` (SDD constitution and feature
-specs), `.opencode/`, `.agents/`, `opencode.json`, `skills-lock.json`,
-`AGENTS.md`, `.env.local`, and build artifacts (`next-env.d.ts`,
+`.env.local` (configuration with secrets) and build artifacts (`next-env.d.ts`,
 `*.tsbuildinfo`).
 
 ## 2. Frontend architecture (RSC-first)
@@ -260,7 +258,7 @@ specs), `.opencode/`, `.agents/`, `opencode.json`, `skills-lock.json`,
   browser bundle (a dynamic `process.env[name]` lookup would not be replaced
   and throws at runtime in the client); `labels.ts` holds es-ES labels
   (`SIZE_OPTIONS`, status/email labels) and `formatDate`.
-- **Analytics (feature 005)**: `supabase/migrations/005_analytics.sql` adds
+- **Analytics dashboard**: `supabase/migrations/005_analytics.sql` adds
   `page_visits` (fire-and-forget storefront counter: anon insert + admin-only
   `select` via `is_admin()`) and four `security_invoker` views
   (`sales_daily_v`, `visits_daily_v`, `top_products_v`, `sales_by_category_v`)

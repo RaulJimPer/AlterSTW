@@ -2,9 +2,8 @@
 
 > Authoritative visual reference for the AlterSTW storefront and admin panel.
 > This document is the single source of truth for look-and-feel tokens,
-> components and layout. It is complemented by per-feature specs in
-> `spec/features/` (behavior, not pixels) and implemented on top of the
-> Twitter-style utilities of Tailwind CSS v4.
+> components and layout, and is implemented on top of the utility-first
+> approach of Tailwind CSS v4.
 
 ---
 
@@ -276,7 +275,7 @@ black/white with red details.
 - Typography uses the same Space Grotesk for consistency of the house; no
   Bricolage shouting in admin.
 
-> **Implemented in feature 004**: the panel routes under `/admin` use a real
+> **Implemented (admin panel — inventory & products)**: the panel routes under `/admin` use a real
 > `admin/` path segment (a bare route group would have collapsed into the
 > storefront paths), a sober token set lives in `globals.css`
 > (`.admin-field`, `.admin-btn`, `.admin-btn-primary` on `#F5F5F4` / `#18181B` /
@@ -290,7 +289,7 @@ black/white with red details.
 > storefront below it. Product images are served through `next/image` with
 > `images.remotePatterns` allowing the Supabase storage host.
 
-> **Implemented in feature 005**: the sidebar gains a 4th entry **Estadísticas**
+> **Implemented (analytics dashboard)**: the sidebar gains a 4th entry **Estadísticas**
 > (`/admin/analytics`) with KPI cards and four Recharts charts (sales
 > ComposedChart, visits/conversion, top products, category donut) plus a
 > critical-stock table, all in the sober palette above (blue/teal/orange/purple/
@@ -342,10 +341,11 @@ zaguán patterns scale without cropping text.
 - Radius tokens: storefront `2px`; admin `4–6px` — kept as component-level
   constant classes, not global overrides.
 - Official checkpoints: contrast pass (§8), focused states testable, build of
-  the storefront and admin in features 001 and 004 respectively.
+  the storefront and admin respectively.
 
 ---
 
 *Conversation record: identity rounds 1–7 concluded 2026-08-12. Cart,
 checkout, and state-page treatments are marked “provisional” pending refinement
-in session conversation before feature 002/003 specs are finalized.*
+in session conversation before the cart, checkout and state-page treatments are
+finalized.*

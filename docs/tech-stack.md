@@ -75,6 +75,6 @@ behind each decision.
 "vitest": "^4.1.10"
 ```
 
-> Deferred decisions (tracked in `dev-docs/02-stack-tecnologico.md`): none
-> remain open for the initial build. The data model is defined per feature,
+> No deferred technology decisions remain open for the initial build. The data
+> model is defined per functional area (catalog, checkout/orders, inventory),
 > not globally.

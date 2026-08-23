@@ -61,7 +61,7 @@ the `email_status`/`order_status` enums and the transactional
 `product-images` storage bucket). The project has **no local Supabase CLI
 configuration** (`supabase/config.toml`); apply the SQL to your project in
 order through the Supabase **SQL editor** (migrations are recorded in
-`docs/`/`spec`, the applied state lives in the project):
+`docs/`, and the applied state lives in the project):
 
 1. `001_catalog.sql` — tables + indexes + RLS policies.
 2. `002_catalog_search.sql` — the storefront view.

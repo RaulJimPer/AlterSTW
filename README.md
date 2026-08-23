@@ -7,6 +7,7 @@ admin panel with an analytics dashboard for the owner.
 
 > **Documentation is organized in [`docs/`](docs/)** — this README is the entry
 > point; each topic has a dedicated page with full detail.
+> **License:** Released under the MIT License — see [LICENSE](LICENSE).
 
 ## Highlights
 
@@ -100,18 +101,24 @@ npm run build
 
 - `src/` — application code (Next.js App Router)
 - `docs/` — visible documentation (English, committed)
-- `spec/` — SDD constitution and feature specs (local-only, not committed)
-- `dev-docs/` — internal drafts and daily progress (local-only, not
-  committed)
-- `.opencode/`, `.agents/` — local OpenCode configuration and skills (not
-  committed)
+- `public/` — static assets (seed images, favicon)
+- `scripts/` — maintenance scripts (e.g. the demo catalog seed)
+- `supabase/migrations/` — SQL schema migrations
+- Configuration lives in `.env.example` (committed) and `.env.local`
+  (gitignored, local-only).
 
 ## Status
 
-> **In development.** The storefront is fully functional end-to-end: catalog,
-> cart and checkout with Stripe payments and confirmation emails. The admin panel
-> is complete and QA-verified by the owner (migration applied, admin
-> account granted). The analytics dashboard (Estadísticas) is implemented —
-> route `/admin/analytics`, KPI cards, Recharts charts, critical-stock table and
-> range selector — with its migration `005_analytics.sql` and manual QA still
-> pending on the owner's side.
+**In development.** AlterSTW already ships the core storefront and back office:
+
+- **Storefront** — product catalog with filtering, product detail, cart and
+  secure Stripe checkout with confirmation emails.
+- **Admin panel** — product publishing, inventory and read-only order history
+  for the owner, plus the **Estadísticas** analytics dashboard (KPI cards,
+  Recharts charts, critical-stock table, range selector).
+
+The test suite (310 Vitest tests), ESLint, `tsc --noEmit` and the production
+build are green; manual QA of the admin and analytics flows on the owner's
+environment is still pending. The architecture is open to future extensions —
+shipping, abandoned-cart recovery, discount coupons and a recommendation engine
+are scoped as next steps.
