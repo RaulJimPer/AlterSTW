@@ -117,8 +117,6 @@ npm run build
   for the owner, plus the **Estadísticas** analytics dashboard (KPI cards,
   Recharts charts, critical-stock table, range selector).
 
-The test suite (310 Vitest tests), ESLint, `tsc --noEmit` and the production
-build are green; manual QA of the admin and analytics flows on the owner's
-environment is still pending. The architecture is open to future extensions —
+The architecture is open to future extensions —
 shipping, abandoned-cart recovery, discount coupons and a recommendation engine
 are scoped as next steps.
